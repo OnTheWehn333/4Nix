@@ -5,6 +5,7 @@ let
   repoUrl = "https://github.com/OnTheWehn333/nvim-config.git";
   targetDir = "${config.home.homeDirectory}/.config/nvim";
   branch = "master";
+  isDarwin = pkgs.stdenv.isDarwin;
 in {
   programs.neovim = {
     enable = true;
@@ -17,26 +18,21 @@ in {
         lazy-nvim
       ];
     # Only include the base dependencies needed for Mason to work
-    extraPackages = with pkgs; [
-      # Essential for Mason
+    extraPackages = with pkgs; 
+    (
+    [
       nodejs
       curl
       unzip
-      # Core search utilities used by plugins like telescope
       ripgrep
       fd
-      # For lazygit integration
       lazygit
       gh
-      # For tmux integration
       tmux
-      # To build
-      gcc
-      gnumake
-      glibc
-      binutils
       go
-    ];
+    ]
+    ++ lib.optionals (!isDarwin) [ gcc gnumake binutils glibc ]
+    );
   };
 
   home.activation.cloneOrUpdateNvimConfig =
