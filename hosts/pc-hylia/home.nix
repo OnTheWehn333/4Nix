@@ -8,6 +8,7 @@
     # ../../home-modules/1password.nix
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
+    ../../home-modules/tmux-sessionizer.nix
   ];
 
   # Other machine-specific home configurations

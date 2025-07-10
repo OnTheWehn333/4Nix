@@ -34,6 +34,13 @@
       resurrect
       yank
       {
+        plugin = tmux-sessionx;
+        extraConfig = ''
+            set -g @sessionx-bind 'o'
+            set -g @sessionx-layout 'reverse'
+        '';
+      }
+      {
         plugin = tokyo-night-tmux;
         extraConfig = ''
           set -g @theme_variation 'night'
