@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   imports = [
@@ -11,6 +11,12 @@
     ../../home-modules/tmux-sessionizer.nix
   ];
 
+programs.zsh = {
+  enable = true;
+};
+
+programs.fzf.enable = true;
+
   # Other machine-specific home configurations
   home.packages = with pkgs; [
     tree
@@ -20,5 +26,5 @@
     # Other packages specific to this machine
   ];
 
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 }
