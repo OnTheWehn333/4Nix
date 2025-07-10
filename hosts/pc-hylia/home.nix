@@ -5,7 +5,6 @@
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
-    # ../../home-modules/1password.nix
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
     ../../home-modules/tmux-sessionizer.nix
