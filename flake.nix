@@ -22,6 +22,7 @@
       darwinPkgs = import nixpkgs {
         system = "aarch64-darwin";
         overlays = [ nix-darwin.overlays.default ];
+        config = { allowUnfree = true; };
       };
     in {
       ####################################################
