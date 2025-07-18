@@ -1,6 +1,4 @@
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   imports = [
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix

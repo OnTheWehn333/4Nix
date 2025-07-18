@@ -1,10 +1,13 @@
-{ config, lib, pkgs, ... }:
-
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   programs.tmux = {
     enable = true;
     extraConfig = ''
-      set -g default-terminal "screen-256color" 
+      set -g default-terminal "screen-256color"
       set-option -sa terminal-features ',xterm-256color:RGB'
       set-option -sg escape-time 10
       set-option -g focus-events on
@@ -36,8 +39,8 @@
       {
         plugin = tmux-sessionx;
         extraConfig = ''
-            set -g @sessionx-bind 'o'
-            set -g @sessionx-layout 'reverse'
+          set -g @sessionx-bind 'o'
+          set -g @sessionx-layout 'reverse'
         '';
       }
       {
@@ -49,4 +52,3 @@
     ];
   };
 }
-

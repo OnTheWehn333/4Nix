@@ -1,6 +1,9 @@
-{ config, lib, pkgs, ... }:
-
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     # Import hardware configuration
     ./hardware-configuration.nix
@@ -15,8 +18,8 @@
   # Define a user account
   users.users.noahbalboa66 = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" ];
-    packages = [ ];
+    extraGroups = ["wheel" "networkmanager"];
+    packages = [];
     shell = pkgs.nushell;
   };
 
