@@ -61,3 +61,7 @@ Home Manager modules are organized in `home-modules/` and imported per-host in t
 2. **hosts/[hostname]/configuration.nix** handles system-level config
 3. **hosts/[hostname]/home.nix** imports Home Manager modules
 4. **home-modules/** contain reusable user environment configurations
+
+## Helpful Commands
+
+- When needing to check the configuration run this command: nix --extra-experimental-features "nix-command flakes" flake check

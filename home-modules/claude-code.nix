@@ -1,6 +1,8 @@
-{ config, lib, pkgs, ... }:
-
 {
-  home.packages = with pkgs; [ claude-code ];
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
+  home.packages = with pkgs; [claude-code];
 }
-
