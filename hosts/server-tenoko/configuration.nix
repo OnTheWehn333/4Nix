@@ -15,6 +15,8 @@
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/vda";
 
+  nix = { settings = { experimental-features = [ "nix-command" "flakes" ]; }; };
+
   # Define a user account
   users.users.noahbalboa66 = {
     isNormalUser = true;
@@ -22,6 +24,12 @@
     packages = [];
     shell = pkgs.nushell;
   };
+
+  programs.bash.interactiveShellInit = ''
+    if ! [ "$TERM" = "dumb" ] && [ -z "$BASH_EXECUTION_STRING" ]; then
+      exec nu
+    fi
+  '';
 
   # Set your time zone
   time.timeZone = "America/Chicago";

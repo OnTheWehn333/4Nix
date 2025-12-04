@@ -6,7 +6,13 @@
     # ../../home-modules/1password.nix
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
+    ../../home-modules/portal.nix
+    ../../home-modules/opencode.nix
+    ../../home-modules/zoxide.nix
+    ../../home-modules/tmux-sessionizer.nix
   ];
+
+  programs.home-manager.enable = true;
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [

@@ -1,9 +1,15 @@
 {pkgs, ...}: let
-  # Read in the raw script text
-  scriptText = builtins.readFile ./scripts/tmux-sessionizer.sh;
+  tmuxSessionizer = pkgs.writeShellApplication {
+    name = "tmux-sessionizer";
 
-  # Turn it into a real `$PATH` binary
-  tmuxSessionizer = pkgs.writeShellScriptBin "tmux-sessionizer" scriptText;
+    # packages your script depends on
+    runtimeInputs = [
+      pkgs.fzf
+      pkgs.tmux
+    ];
+
+    text = builtins.readFile ./scripts/tmux-sessionizer.sh;
+  };
 in {
-  home.packages = with pkgs; [fzf tmuxSessionizer];
+  home.packages = [tmuxSessionizer];
 }
