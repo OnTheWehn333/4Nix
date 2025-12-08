@@ -1,4 +1,4 @@
-{ inputs, ... }: {
+{inputs, ...}: {
   # Expose nixpkgs-unstable under pkgs.unstable
   unstable-packages = final: _prev: {
     unstable = import inputs.nixpkgs-unstable {
@@ -8,5 +8,7 @@
   };
 
   # Packages you want to override live here 👇
-  modifications = final: prev: { };
+  modifications = final: prev: {
+    opencode = final.unstable.opencode;
+  };
 }

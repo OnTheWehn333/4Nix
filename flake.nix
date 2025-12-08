@@ -61,6 +61,7 @@
       pkgs = linuxPkgs;
       modules = [
         ./hosts/server-tenoko/configuration.nix
+        ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
