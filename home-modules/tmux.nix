@@ -1,31 +1,44 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   programs.tmux = {
     enable = true;
+    
+    # Use Home Manager native options for better integration
+    terminal = "screen-256color";
+    historyLimit = 50000;
+    baseIndex = 1;
+    escapeTime = 10;
+    keyMode = "vi";
+    mouse = false;
+    
     extraConfig = ''
-      set -g default-terminal "screen-256color"
+      # Terminal features
       set-option -sa terminal-features ',xterm-256color:RGB'
-      set-option -sg escape-time 10
       set-option -g focus-events on
-      set -g history-limit 50000
-      setw -g automatic-rename
+      
+      # Window/pane settings
+      setw -g automatic-rename on
       set-option -g renumber-windows on
-      setw -g mode-keys vi
-      set -g base-index 1
       setw -g pane-base-index 1
+      
+      # Status bar
       set -g status-right '%a %Y-%m-%d %H:%M'
       set -g status-right-length 20
-      bind r source-file ~/.tmux.conf
+
+      # Enable OSC 52 clipboard passthrough
+      set -g set-clipboard on
+      set -g allow-passthrough on
+      set -ag terminal-overrides ",*:Ms=\\E]52;c;%p2%s\\7"
+
+      # Key bindings
+      bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
       bind z switch-client -l
       bind k clear-history
       bind f resize-pane -Z
+      
       # Splitting panes
       bind | split-window -h
       bind - split-window -v
+      
       # Arrow key bindings for navigating between panes
       bind -n C-Left select-pane -L
       bind -n C-Down select-pane -D
@@ -35,7 +48,15 @@
 
     plugins = with pkgs.tmuxPlugins; [
       resurrect
-      yank
+      {
+        plugin = yank;
+        extraConfig = ''
+          # Configure yank to use OSC 52 instead of platform-specific commands
+          set -g @yank_selection 'clipboard'
+          set -g @yank_selection_mouse 'clipboard'
+          set -g @override_copy_command 'true'
+        '';
+      }
       {
         plugin = tmux-sessionx;
         extraConfig = ''
