@@ -10,6 +10,8 @@
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
+    ../../home-modules/tunnel9.nix
+    ../../home-modules/atac.nix
   ];
 
   programs.zsh = {

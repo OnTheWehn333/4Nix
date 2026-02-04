@@ -10,6 +10,8 @@
   # Host basics
   networking.hostName = "pc-hylia";
 
+  nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
+
   environment.systemPackages = with pkgs; [
     git
     nodejs
