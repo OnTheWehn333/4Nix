@@ -14,6 +14,12 @@
 
   programs.home-manager.enable = true;
 
+  # opencode: set useLatest = true to build from GitHub source
+  programs.opencode = {
+    enable = true;
+    # useLatest = true;  # Uncomment to use bleeding-edge from GitHub
+  };
+
   # Other machine-specific home configurations
   home.packages = with pkgs; [
     tree

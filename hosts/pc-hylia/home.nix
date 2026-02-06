@@ -20,6 +20,12 @@
 
   programs.fzf.enable = true;
 
+  # opencode: set useLatest = true to build from GitHub source
+  programs.opencode = {
+    enable = true;
+    useLatest = true;
+  };
+
   programs.home-manager.enable = true;
 
   # Other machine-specific home configurations

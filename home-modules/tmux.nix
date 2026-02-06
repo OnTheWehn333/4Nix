@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   programs.tmux = {
     enable = true;
-    
+
     # Use Home Manager native options for better integration
     terminal = "screen-256color";
     historyLimit = 50000;
@@ -9,17 +9,20 @@
     escapeTime = 10;
     keyMode = "vi";
     mouse = false;
-    
+
     extraConfig = ''
       # Terminal features
       set-option -sa terminal-features ',xterm-256color:RGB'
       set-option -g focus-events on
-      
+
       # Window/pane settings
       setw -g automatic-rename on
       set-option -g renumber-windows on
       setw -g pane-base-index 1
-      
+
+      bind-key -n C-S-Left swap-window -t -1\; select-window -t -1
+      bind-key -n C-S-Right swap-window -t +1\; select-window -t +1
+
       # Status bar
       set -g status-right '%a %Y-%m-%d %H:%M'
       set -g status-right-length 20
@@ -34,11 +37,11 @@
       bind z switch-client -l
       bind k clear-history
       bind f resize-pane -Z
-      
+
       # Splitting panes
       bind | split-window -h
       bind - split-window -v
-      
+
       # Arrow key bindings for navigating between panes
       bind -n C-Left select-pane -L
       bind -n C-Down select-pane -D
@@ -51,10 +54,9 @@
       {
         plugin = yank;
         extraConfig = ''
-          # Configure yank to use OSC 52 instead of platform-specific commands
+          # Configure yank clipboard target
           set -g @yank_selection 'clipboard'
           set -g @yank_selection_mouse 'clipboard'
-          set -g @override_copy_command 'true'
         '';
       }
       {
