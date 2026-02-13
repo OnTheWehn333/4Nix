@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  cfg = config.programs.opencode;
+  cfg = config.custom.opencode;
 
   # Read API key from external file at runtime
   # Create this file with: echo "your-api-key" > ~/.secrets/context7-api-key
@@ -70,201 +70,6 @@
     };
   };
 
-  # Package selection: latest binary or nixpkgs
-  opencodePackage =
-    if cfg.useLatest
-    then opencodeLatestBinary
-    else pkgs.opencode;
-
-  # Main opencode settings (without the API key - that's injected at activation time)
-  opencodeSettings = {
-    "$schema" = "https://opencode.ai/config.json";
-
-    mcp = {
-      context7 = {
-        type = "remote";
-        url = "https://mcp.context7.com/mcp";
-        # headers will be injected by activation script
-        enabled = true;
-      };
-      pdf-reader = {
-        type = "local";
-        command = ["npx" "@sylphx/pdf-reader-mcp"];
-        enabled = true;
-      };
-    };
-
-    plugin = [
-      "oh-my-opencode"
-      "opencode-antigravity-auth"
-      "opencode-openai-codex-auth"
-      "opencode-plugin-openspec"
-    ];
-
-    provider = {
-      google = {
-        name = "Google";
-        models = {
-          antigravity-gemini-3-pro-high = {
-            name = "Gemini 3 Pro High (Antigravity)";
-            thinking = true;
-            attachment = true;
-            limit = {
-              context = 1048576;
-              output = 65535;
-            };
-            modalities = {
-              input = ["text" "image" "pdf"];
-              output = ["text"];
-            };
-          };
-          antigravity-gemini-3-pro-low = {
-            name = "Gemini 3 Pro Low (Antigravity)";
-            thinking = true;
-            attachment = true;
-            limit = {
-              context = 1048576;
-              output = 65535;
-            };
-            modalities = {
-              input = ["text" "image" "pdf"];
-              output = ["text"];
-            };
-          };
-          antigravity-gemini-3-flash = {
-            name = "Gemini 3 Flash (Antigravity)";
-            attachment = true;
-            limit = {
-              context = 1048576;
-              output = 65536;
-            };
-            modalities = {
-              input = ["text" "image" "pdf"];
-              output = ["text"];
-            };
-          };
-        };
-      };
-
-      openai = {
-        name = "OpenAI";
-        options = {
-          reasoningEffort = "medium";
-          reasoningSummary = "auto";
-          textVerbosity = "medium";
-          include = ["reasoning.encrypted_content"];
-          store = false;
-        };
-        models = {
-          "gpt-5.2" = {
-            name = "GPT 5.2 (OAuth)";
-            limit = {
-              context = 272000;
-              output = 128000;
-            };
-            modalities = {
-              input = ["text" "image"];
-              output = ["text"];
-            };
-            variants = {
-              none = {
-                reasoningEffort = "none";
-                reasoningSummary = "auto";
-                textVerbosity = "medium";
-              };
-              low = {
-                reasoningEffort = "low";
-                reasoningSummary = "auto";
-                textVerbosity = "medium";
-              };
-              medium = {
-                reasoningEffort = "medium";
-                reasoningSummary = "auto";
-                textVerbosity = "medium";
-              };
-              high = {
-                reasoningEffort = "high";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-              xhigh = {
-                reasoningEffort = "xhigh";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-            };
-          };
-          "gpt-5.2-codex" = {
-            name = "GPT 5.2 Codex (OAuth)";
-            limit = {
-              context = 272000;
-              output = 128000;
-            };
-            modalities = {
-              input = ["text" "image"];
-              output = ["text"];
-            };
-            variants = {
-              low = {
-                reasoningEffort = "low";
-                reasoningSummary = "auto";
-                textVerbosity = "medium";
-              };
-              medium = {
-                reasoningEffort = "medium";
-                reasoningSummary = "auto";
-                textVerbosity = "medium";
-              };
-              high = {
-                reasoningEffort = "high";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-              xhigh = {
-                reasoningEffort = "xhigh";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-            };
-          };
-          "gpt-5.1-codex-max" = {
-            name = "GPT 5.1 Codex Max (OAuth)";
-            limit = {
-              context = 272000;
-              output = 128000;
-            };
-            modalities = {
-              input = ["text" "image"];
-              output = ["text"];
-            };
-            variants = {
-              low = {
-                reasoningEffort = "low";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-              medium = {
-                reasoningEffort = "medium";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-              high = {
-                reasoningEffort = "high";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-              xhigh = {
-                reasoningEffort = "xhigh";
-                reasoningSummary = "detailed";
-                textVerbosity = "medium";
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
   # oh-my-opencode configuration
   ohMyOpencodeSettings = {
     "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
@@ -280,24 +85,221 @@
     };
   };
 in {
-  options.programs.opencode = {
-    enable = lib.mkEnableOption "opencode AI coding assistant";
-
-    useLatest = lib.mkEnableOption "build from latest GitHub source instead of nixpkgs";
+  options.custom.opencode = {
+    useLatest = lib.mkEnableOption "use latest GitHub binary instead of nixpkgs";
   };
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [opencodePackage];
+  config = {
+    home.packages = [pkgs.bun];
 
-    # Main opencode config
-    xdg.configFile."opencode/opencode.json".text = builtins.toJSON opencodeSettings;
+    # Upstream programs.opencode handles enable, package, settings, and config.json
+    programs.opencode = {
+      enable = true;
+      package = lib.mkIf cfg.useLatest opencodeLatestBinary;
 
-    # oh-my-opencode config
+      settings = {
+        mcp = {
+          context7 = {
+            type = "remote";
+            url = "https://mcp.context7.com/mcp";
+            # headers will be injected by activation script
+            enabled = true;
+          };
+          pdf-reader = {
+            type = "local";
+            command = ["bunx" "@sylphx/pdf-reader-mcp"];
+            enabled = true;
+          };
+          playwright = {
+            type = "local";
+            command = ["bunx" "@playwright/mcp@latest" "--browser" "chromium"];
+            enabled = true;
+          };
+        };
+
+        plugin = [
+          "oh-my-opencode"
+          "opencode-antigravity-auth"
+          "opencode-openai-codex-auth"
+          "opencode-plugin-openspec"
+        ];
+
+        provider = {
+          google = {
+            name = "Google";
+            models = {
+              antigravity-gemini-3-pro-high = {
+                name = "Gemini 3 Pro High (Antigravity)";
+                thinking = true;
+                attachment = true;
+                limit = {
+                  context = 1048576;
+                  output = 65535;
+                };
+                modalities = {
+                  input = ["text" "image" "pdf"];
+                  output = ["text"];
+                };
+              };
+              antigravity-gemini-3-pro-low = {
+                name = "Gemini 3 Pro Low (Antigravity)";
+                thinking = true;
+                attachment = true;
+                limit = {
+                  context = 1048576;
+                  output = 65535;
+                };
+                modalities = {
+                  input = ["text" "image" "pdf"];
+                  output = ["text"];
+                };
+              };
+              antigravity-gemini-3-flash = {
+                name = "Gemini 3 Flash (Antigravity)";
+                attachment = true;
+                limit = {
+                  context = 1048576;
+                  output = 65536;
+                };
+                modalities = {
+                  input = ["text" "image" "pdf"];
+                  output = ["text"];
+                };
+              };
+            };
+          };
+
+          openai = {
+            name = "OpenAI";
+            options = {
+              reasoningEffort = "medium";
+              reasoningSummary = "auto";
+              textVerbosity = "medium";
+              include = ["reasoning.encrypted_content"];
+              store = false;
+            };
+            models = {
+              "gpt-5.2" = {
+                name = "GPT 5.2 (OAuth)";
+                limit = {
+                  context = 272000;
+                  output = 128000;
+                };
+                modalities = {
+                  input = ["text" "image"];
+                  output = ["text"];
+                };
+                variants = {
+                  none = {
+                    reasoningEffort = "none";
+                    reasoningSummary = "auto";
+                    textVerbosity = "medium";
+                  };
+                  low = {
+                    reasoningEffort = "low";
+                    reasoningSummary = "auto";
+                    textVerbosity = "medium";
+                  };
+                  medium = {
+                    reasoningEffort = "medium";
+                    reasoningSummary = "auto";
+                    textVerbosity = "medium";
+                  };
+                  high = {
+                    reasoningEffort = "high";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                  xhigh = {
+                    reasoningEffort = "xhigh";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                };
+              };
+              "gpt-5.2-codex" = {
+                name = "GPT 5.2 Codex (OAuth)";
+                limit = {
+                  context = 272000;
+                  output = 128000;
+                };
+                modalities = {
+                  input = ["text" "image"];
+                  output = ["text"];
+                };
+                variants = {
+                  low = {
+                    reasoningEffort = "low";
+                    reasoningSummary = "auto";
+                    textVerbosity = "medium";
+                  };
+                  medium = {
+                    reasoningEffort = "medium";
+                    reasoningSummary = "auto";
+                    textVerbosity = "medium";
+                  };
+                  high = {
+                    reasoningEffort = "high";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                  xhigh = {
+                    reasoningEffort = "xhigh";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                };
+              };
+              "gpt-5.1-codex-max" = {
+                name = "GPT 5.1 Codex Max (OAuth)";
+                limit = {
+                  context = 272000;
+                  output = 128000;
+                };
+                modalities = {
+                  input = ["text" "image"];
+                  output = ["text"];
+                };
+                variants = {
+                  low = {
+                    reasoningEffort = "low";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                  medium = {
+                    reasoningEffort = "medium";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                  high = {
+                    reasoningEffort = "high";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                  xhigh = {
+                    reasoningEffort = "xhigh";
+                    reasoningSummary = "detailed";
+                    textVerbosity = "medium";
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
+    # oh-my-opencode config (not handled by upstream)
     xdg.configFile."opencode/oh-my-opencode.json".text = builtins.toJSON ohMyOpencodeSettings;
 
-    # Activation script to inject API key into opencode.json
+    # Install Playwright Chromium browser for MCP server
+    home.activation.installPlaywrightBrowsers = lib.hm.dag.entryAfter ["writeBoundary"] ''
+      ${pkgs.bun}/bin/bunx playwright install chromium 2>/dev/null || echo "Note: Playwright browser install deferred to first use"
+    '';
+
+    # Activation script to inject API key into config.json
     home.activation.injectOpencodeSecrets = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      OPENCODE_CONFIG="${config.xdg.configHome}/opencode/opencode.json"
+      OPENCODE_CONFIG="${config.xdg.configHome}/opencode/config.json"
       SECRETS_FILE="${secretsDir}/context7-api-key"
 
       if [ -f "$SECRETS_FILE" ] && [ -f "$OPENCODE_CONFIG" ]; then

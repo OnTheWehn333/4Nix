@@ -15,7 +15,7 @@
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/vda";
 
-  nix = { settings = { experimental-features = [ "nix-command" "flakes" ]; }; };
+  nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
 
   # Define a user account
   users.users.noahbalboa66 = {
@@ -35,12 +35,12 @@
   time.timeZone = "America/Chicago";
 
   services.openssh.enable = true;
-  
+
   # TAK Server tools for manual setup
   services.tak-server = {
     enable = true;
     workDir = "/opt/tak-server";
-    openFirewall = true;  # Set to false to manage firewall manually
+    openFirewall = true; # Set to false to manage firewall manually
   };
 
   # Add system-wide packages
@@ -53,5 +53,5 @@
   home-manager.users.noahbalboa66 = import ./home.nix;
 
   # This value determines the NixOS release with which your system is to be compatible
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }

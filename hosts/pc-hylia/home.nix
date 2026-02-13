@@ -12,21 +12,18 @@
     ../../home-modules/tmux-sessionizer.nix
     ../../home-modules/tunnel9.nix
     ../../home-modules/atac.nix
+    ../../home-modules/scrcpy.nix
+    ../../home-modules/android-tools.nix
+    ../../home-modules/agenix.nix
+    ../../home-modules/chafa.nix
   ];
 
-  programs.zsh = {
-    enable = true;
-  };
-
+  programs.zsh.enable = true;
   programs.fzf.enable = true;
+  programs.home-manager.enable = true;
 
   # opencode: set useLatest = true to build from GitHub source
-  programs.opencode = {
-    enable = true;
-    useLatest = true;
-  };
-
-  programs.home-manager.enable = true;
+  custom.opencode.useLatest = true;
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [
@@ -36,5 +33,5 @@
     # Other packages specific to this machine
   ];
 
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
 }

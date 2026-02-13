@@ -13,6 +13,7 @@
     extraConfig = ''
       # Terminal features
       set-option -sa terminal-features ',xterm-256color:RGB'
+      set-option -sa terminal-features ',xterm-ghostty:RGB'
       set-option -g focus-events on
 
       # Window/pane settings

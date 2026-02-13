@@ -6,7 +6,9 @@
 }: {
   programs.git = {
     enable = true;
-    userName = "noahbalboa66";
-    userEmail = "noahwehn@gmail.com";
+    settings.user = {
+      name = "noahbalboa66";
+      email = "noahwehn@gmail.com";
+    };
   };
 }
