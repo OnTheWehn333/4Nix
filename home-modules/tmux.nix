@@ -52,6 +52,7 @@
 
     plugins = with pkgs.tmuxPlugins; [
       resurrect
+      tome
       {
         plugin = yank;
         extraConfig = ''
@@ -63,7 +64,7 @@
       {
         plugin = tmux-sessionx;
         extraConfig = ''
-          set -g @sessionx-bind 'o'
+          set -g @sessionx-bind 'u'
           set -g @sessionx-layout 'reverse'
         '';
       }
