@@ -82,7 +82,7 @@
       ];
     };
 
-    ## NixOS bootstrap (no sops secrets, installs keysync + gpg + op)
+    ## NixOS bootstrap (minimal HM profile for key restore dependencies)
     nixosConfigurations.server-tenoko-bootstrap = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       pkgs = linuxPkgs;
@@ -95,6 +95,9 @@
           home-manager.useUserPackages = true;
           home-manager.extraSpecialArgs = {inherit inputs;};
         }
+        ({lib, ...}: {
+          home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/server-tenoko/home-bootstrap.nix);
+        })
       ];
     };
 
@@ -115,7 +118,7 @@
       ];
     };
 
-    ## macOS bootstrap (no sops secrets, installs keysync + gpg + op)
+    ## macOS bootstrap (minimal HM profile for key restore dependencies)
     darwinConfigurations.pc-hylia-bootstrap = nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
       pkgs = darwinPkgs;
@@ -128,6 +131,9 @@
           home-manager.useUserPackages = true;
           home-manager.extraSpecialArgs = {inherit inputs;};
         }
+        ({lib, ...}: {
+          home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/pc-hylia/home-bootstrap.nix);
+        })
       ];
     };
   };
