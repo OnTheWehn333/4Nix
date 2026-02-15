@@ -1,16 +1,25 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  inputs,
+  config,
+  ...
+}: {
   imports = [
+    inputs.sops-nix.homeManagerModules.sops
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
-    # ../../home-modules/1password.nix
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
     ../../home-modules/portal.nix
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
+    ../../home-modules/keysync.nix
   ];
+
+  sops.defaultSopsFile = ../../secrets/server-tenoko/secrets.yaml;
+  sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";
 
   programs.home-manager.enable = true;
 

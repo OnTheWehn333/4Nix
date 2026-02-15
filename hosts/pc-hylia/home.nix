@@ -1,5 +1,11 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  inputs,
+  config,
+  ...
+}: {
   imports = [
+    inputs.sops-nix-darwin.homeManagerModules.sops
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
@@ -16,7 +22,11 @@
     ../../home-modules/android-tools.nix
     ../../home-modules/agenix.nix
     ../../home-modules/chafa.nix
+    ../../home-modules/keysync.nix
   ];
+
+  sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
+  sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";
 
   programs.zsh.enable = true;
   programs.fzf.enable = true;

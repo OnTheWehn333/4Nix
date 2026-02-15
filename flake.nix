@@ -26,6 +26,16 @@
       url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
+
+    # sops-nix for secret management
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    sops-nix-darwin = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
   };
 
   outputs = inputs @ {
@@ -51,6 +61,7 @@
 
     darwinPkgs = import nixpkgs {
       system = "aarch64-darwin";
+      config = {allowUnfree = true;};
       overlays = [nix-darwin.overlays.default] ++ overlaysList;
     };
   in {
@@ -71,11 +82,43 @@
       ];
     };
 
+    ## NixOS bootstrap (no sops secrets, installs keysync + gpg + op)
+    nixosConfigurations.server-tenoko-bootstrap = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        ./hosts/server-tenoko/configuration.nix
+        ./modules/tak-server.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
     ####################################################
-    ## macOS host  — **use nix-darwin.lib.darwinSystem**
+    ## macOS host
     darwinConfigurations.pc-hylia = nix-darwin.lib.darwinSystem {
       system = "aarch64-darwin";
-      pkgs = darwinPkgs; # <- hand over pkgs
+      pkgs = darwinPkgs;
+      modules = [
+        (import ./hosts/pc-hylia/configuration.nix)
+        home-manager-darwin.darwinModules.home-manager
+        {
+          nixpkgs.config.allowUnfree = true;
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
+    ## macOS bootstrap (no sops secrets, installs keysync + gpg + op)
+    darwinConfigurations.pc-hylia-bootstrap = nix-darwin.lib.darwinSystem {
+      system = "aarch64-darwin";
+      pkgs = darwinPkgs;
       modules = [
         (import ./hosts/pc-hylia/configuration.nix)
         home-manager-darwin.darwinModules.home-manager

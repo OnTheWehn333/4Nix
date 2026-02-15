@@ -1,0 +1,41 @@
+version: 1
+vault: "Personal"
+
+keys:
+  identity:
+    title: "keysync/gpg/identity"
+    fingerprint: "57F09591B972D7CD2D8EAC22515584B240B685E5"
+    subkeys:
+      signing:
+        fingerprint: "1EC935423DEED8090E00DEF9DD7ABAD676F208CB"
+
+  pc-hylia:
+    title: "keysync/gpg/pc-hylia"
+    fingerprint: "ED5B989EAFE0BA8BC46DE29737E14339C2B7F4E6"
+    subkeys:
+      encrypt:
+        fingerprint: "AEAF9C703F3A747D2067FE1FFB377BA7CBF86FEE"
+      auth:
+        fingerprint: "F692F6F5D9B9898A6EBDD8B5D027CA1A94337B89"
+
+  server-tenoko:
+    title: "keysync/gpg/server-tenoko"
+    fingerprint: "A32D22B699D9A13E45370FE8B54D20EA017DFE98"
+    subkeys:
+      encrypt:
+        fingerprint: "D2B87B52B332C8FC3BB1CD7EDE81A21C74970FD1"
+      auth:
+        fingerprint: "8E4A14F922FCB840F987868279B3ADFEFB6A4C48"
+
+hosts:
+  pc-hylia:
+    keys:
+      - identity.signing
+      - pc-hylia.encrypt
+      - pc-hylia.auth
+
+  server-tenoko:
+    keys:
+      - identity.signing
+      - server-tenoko.encrypt
+      - server-tenoko.auth

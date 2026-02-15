@@ -122,6 +122,7 @@ in {
           "opencode-antigravity-auth"
           "opencode-openai-codex-auth"
           "opencode-plugin-openspec"
+          "@franlol/opencode-md-table-formatter@0.0.3"
         ];
 
         provider = {

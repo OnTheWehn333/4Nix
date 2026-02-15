@@ -1,0 +1,13 @@
+creation_rules:
+  - path_regex: secrets/pc-hylia/.*
+    pgp: >-
+      ED5B989EAFE0BA8BC46DE29737E14339C2B7F4E6
+
+  - path_regex: secrets/server-tenoko/.*
+    pgp: >-
+      A32D22B699D9A13E45370FE8B54D20EA017DFE98
+
+  - path_regex: secrets/shared/.*
+    pgp: >-
+      ED5B989EAFE0BA8BC46DE29737E14339C2B7F4E6,
+      A32D22B699D9A13E45370FE8B54D20EA017DFE98

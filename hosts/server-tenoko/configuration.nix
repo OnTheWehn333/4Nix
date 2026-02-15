@@ -36,13 +36,6 @@
 
   services.openssh.enable = true;
 
-  # TAK Server tools for manual setup
-  services.tak-server = {
-    enable = true;
-    workDir = "/opt/tak-server";
-    openFirewall = true; # Set to false to manage firewall manually
-  };
-
   # Add system-wide packages
   environment.systemPackages = with pkgs; [
     vim
