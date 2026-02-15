@@ -3,7 +3,9 @@
   inputs,
   config,
   ...
-}: {
+}: let
+  gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
+in {
   imports = [
     inputs.sops-nix-darwin.homeManagerModules.sops
     ../../home-modules/bundles/dev-tools.nix
@@ -28,6 +30,10 @@
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
   sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";
+
+  services.gpg-agent.sshKeys = [
+    gpgSshKeygrips.pc-hylia
+  ];
 
   programs.zsh.enable = true;
   programs.fzf.enable = true;

@@ -3,7 +3,9 @@
   inputs,
   config,
   ...
-}: {
+}: let
+  gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
+in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
     ../../home-modules/bundles/dev-tools.nix
@@ -21,6 +23,10 @@
 
   sops.defaultSopsFile = ../../secrets/server-tenoko/secrets.yaml;
   sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";
+
+  services.gpg-agent.sshKeys = [
+    gpgSshKeygrips.server-tenoko
+  ];
 
   programs.home-manager.enable = true;
 
