@@ -19,10 +19,12 @@
     };
   };
 in {
+  imports = [
+    ./gpg.nix
+  ];
+
   home.packages = with pkgs; [
     keysync
     _1password-cli
-    gnupg
-    gpg-tui
   ];
 }
