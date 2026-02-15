@@ -16,6 +16,7 @@
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
     ../../home-modules/keysync.nix
+    ../../home-modules/lazydocker.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/server-tenoko/secrets.yaml;

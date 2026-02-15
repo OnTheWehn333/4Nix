@@ -23,6 +23,7 @@
     ../../home-modules/agenix.nix
     ../../home-modules/chafa.nix
     ../../home-modules/keysync.nix
+    ../../home-modules/lazydocker.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
