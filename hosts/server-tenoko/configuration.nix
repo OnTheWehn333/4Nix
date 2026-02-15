@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  sshHostKeys = import ../shared/ssh-public-keys.nix;
+in {
   imports = [
     # Import hardware configuration
     ./hardware-configuration.nix
@@ -35,6 +37,10 @@
   time.timeZone = "America/Chicago";
 
   services.openssh.enable = true;
+
+  users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
+    sshHostKeys.pc-hylia
+  ];
 
   # Add system-wide packages
   environment.systemPackages = with pkgs; [

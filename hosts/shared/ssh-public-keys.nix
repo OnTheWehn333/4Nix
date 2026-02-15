@@ -1,0 +1,4 @@
+{
+  pc-hylia = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOENFr+MMMQbLQvxPkFB5bAWu1g0rJr+mv3Cyx3FjenM openpgp:0x94337B89";
+  server-tenoko = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAUDIGZOw72Xg4F5Js/qcDADE86MSme7ai+s9w7sZAwz openpgp:0xFB6A4C48";
+}
