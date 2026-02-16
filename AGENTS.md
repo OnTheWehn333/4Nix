@@ -1,36 +1,45 @@
 # AGENTS.md
 
-**Generated:** 2026-02-04 | **Commit:** e4a3408 | **Branch:** master
+**Generated:** 2026-02-15 | **Commit:** d70dfda | **Branch:** master
 
 ## Overview
 
-NixOS + nix-darwin flake with Home Manager. Manages two hosts: `server-tenoko` (NixOS/x86_64-linux) and `pc-hylia` (Darwin/aarch64-darwin).
+NixOS + nix-darwin flake with Home Manager. Two hosts: `server-tenoko` (NixOS/x86_64-linux) and `pc-hylia` (Darwin/aarch64-darwin). Secrets via sops-nix. GPG subkey sync via custom Go tool (`keysync`).
 
 ## Structure
 
 ```
 4Nix/
-├── flake.nix              # Entry: defines nixosConfigurations + darwinConfigurations
+├── flake.nix                # Entry: nixosConfigurations + darwinConfigurations (4 total)
 ├── hosts/
-│   ├── pc-hylia/          # macOS: configuration.nix + home.nix
-│   └── server-tenoko/     # NixOS: configuration.nix + home.nix + hardware-configuration.nix
-├── home-modules/          # Reusable Home Manager modules (one tool per file)
-│   ├── bundles/           # Grouped imports (dev-tools.nix)
-│   └── scripts/           # Shell scripts sourced by modules
-├── modules/               # NixOS service modules (tak-server.nix)
-└── overlays/              # Package overlays (unstable + modifications)
+│   ├── pc-hylia/            # macOS: configuration.nix + home.nix + home-bootstrap.nix
+│   ├── server-tenoko/       # NixOS: configuration.nix + home.nix + home-bootstrap.nix
+│   └── shared/              # Cross-host data: GPG keys, SSH keys, keygrips
+├── home-modules/            # Reusable HM modules (one tool per file, 24 modules)
+│   ├── bundles/             # Grouped imports (dev-tools.nix)
+│   └── scripts/             # Shell scripts sourced by modules
+├── modules/                 # NixOS service modules (tak-server.nix, traefik-cf-tunnel.nix)
+├── overlays/                # Package overlays (unstable + modifications)
+├── secrets/                 # sops-encrypted per-host + shared secrets (not in git)
+│   ├── pc-hylia/
+│   ├── server-tenoko/
+│   └── shared/
+└── tools/keysync/           # Go CLI: GPG subkey backup/restore via 1Password
 ```
 
 ## Where to Look
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Add new host | `flake.nix` + `hosts/{hostname}/` | Copy existing host structure |
+| Add new host | `flake.nix` + `hosts/{hostname}/` | Copy existing host, add both normal + bootstrap configs |
 | Add user tool | `home-modules/{tool}.nix` | Import in host's `home.nix` |
 | Bundle related tools | `home-modules/bundles/` | Group imports together |
-| Add system service | `modules/` | NixOS-only, import in flake.nix |
+| Add system service | `modules/` | NixOS-only, import in `flake.nix` nixosConfigurations |
 | Override packages | `overlays/default.nix` | Two overlays: `unstable-packages`, `modifications` |
 | Platform-specific packages | Host's `home.nix` | Use `lib.optionals pkgs.stdenv.isDarwin [...]` |
+| Add/edit secrets | `secrets/{hostname}/` + `.sops.yaml` | Encrypt with `sops`, keyed per host PGP fingerprint |
+| Share data across hosts | `hosts/shared/*.nix` | Plain attrsets imported by both hosts |
+| Bootstrap new machine | Build `{host}-bootstrap` config | Minimal HM with keysync only, for key restore |
 
 ## Conventions
 
@@ -40,6 +49,7 @@ NixOS + nix-darwin flake with Home Manager. Manages two hosts: `server-tenoko` (
 ```
 - Always destructure `config`, `lib`, `pkgs` even if unused (consistency)
 - Use `let ... in { ... }` for local bindings
+- Access flake inputs via `inputs` arg (passed through `extraSpecialArgs`)
 
 ### Imports
 - Place `imports = [ ... ];` at top of module body
@@ -61,33 +71,55 @@ NixOS + nix-darwin flake with Home Manager. Manages two hosts: `server-tenoko` (
 
 - **DO NOT** modify `hardware-configuration.nix` (auto-generated)
 - **NEVER** commit without running `nix flake check`
-- **AVOID** `as any`-style suppressions - all Nix expressions must type-check
 - **DO NOT** add platform-specific packages without `lib.optionals` guard
+- **DO NOT** hardcode GPG fingerprints in host configs — use `hosts/shared/*.nix`
+- **DO NOT** put secrets in plain text — use sops-nix (`secrets/` directory)
 
 ## Unique Patterns
 
-### Dual nixpkgs Input
+### Dual nixpkgs + Dual sops-nix Inputs
 ```nix
-nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";        # Linux
-nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";  # macOS
+nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";             # Linux
+nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";  # macOS
+sops-nix.inputs.nixpkgs.follows = "nixpkgs";                   # Linux secrets
+sops-nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";     # macOS secrets
 ```
-Each platform uses matched Home Manager input (`home-manager` vs `home-manager-darwin`).
+Each platform uses matched Home Manager + sops-nix input. HM integrated as NixOS/darwin module (not standalone).
+
+### Four Flake Configurations
+Normal + bootstrap variant per host. Bootstrap configs use `lib.mkForce` to override HM user with minimal `home-bootstrap.nix` (keysync + home-manager only).
 
 ### Overlays Architecture
 ```nix
 # overlays/default.nix exports two overlays:
-unstable-packages  # Exposes pkgs.unstable.*
-modifications      # Package overrides (e.g., opencode = final.unstable.opencode)
+unstable-packages  # Exposes pkgs.unstable.* from nixos-unstable
+modifications      # Package overrides (opencode, tmuxPlugins.tome)
 ```
-Applied via `overlaysList` in flake.nix.
+Applied via `overlaysList` in flake.nix. Darwin also gets `nix-darwin.overlays.default`.
+
+### Custom Package Builds (buildGoModule)
+- `tunnel9.nix`: SSH tunnel TUI, fetched from GitHub
+- `keysync.nix`: Local Go source at `../tools/keysync`, GPG subkey sync to 1Password
 
 ### Home Manager Activation Scripts
-Several modules use `home.activation.*` for post-install setup:
-- `neovim.nix`: Clone/update nvim config from GitHub
-- `rust.nix`: Initialize rustup toolchain if missing
+- `neovim.nix`: Clone/update nvim config from `github:OnTheWehn333/nvim-config`
+- `rust.nix`: Initialize rustup stable toolchain if missing
+- `opencode.nix`: Install Playwright Chromium + inject Context7 API key into config
 
-### Custom Package Build
-`tunnel9.nix` builds Go package from source using `pkgs.buildGoModule`.
+### Shared Host Data Pattern
+`hosts/shared/` contains plain Nix attrsets (not modules) imported via `import ../shared/file.nix`:
+- `gpg-signing-keys.nix`: Per-host GPG signing key fingerprints
+- `gpg-ssh-keygrips.nix`: Per-host SSH authentication keygrips
+- `ssh-public-keys.nix`: Per-host SSH public keys (for cross-host authorized_keys)
+
+### Secret Management (sops-nix)
+- `.sops.yaml` maps path regex → PGP fingerprint per host
+- Each host imports its sops-nix HM module variant (`sops-nix` vs `sops-nix-darwin`)
+- `sops.defaultSopsFile` points to `../../secrets/{host}/secrets.yaml`
+- `sops.gnupg.home` uses `${config.home.homeDirectory}/.gnupg`
+
+### opencode.nix Custom Options
+Defines `config.custom.opencode.useLatest` option — when enabled, builds from latest GitHub release binary instead of nixpkgs. Includes multi-platform binary download support and oh-my-opencode configuration.
 
 ## Commands
 
@@ -101,6 +133,10 @@ sudo nixos-rebuild switch --flake .#server-tenoko
 # Build macOS (pc-hylia)
 darwin-rebuild switch --flake .#pc-hylia
 
+# Bootstrap (first-time machine setup — keysync only)
+sudo nixos-rebuild switch --flake .#server-tenoko-bootstrap
+darwin-rebuild switch --flake .#pc-hylia-bootstrap
+
 # Update flake inputs
 nix flake update
 
@@ -110,60 +146,16 @@ nix flake show
 
 ## Host Quick Reference
 
-| Host | Platform | System | Key Services |
-|------|----------|--------|--------------|
-| `pc-hylia` | macOS | aarch64-darwin | ghostty, nushell, zsh, tunnel9, atac |
-| `server-tenoko` | NixOS | x86_64-linux | tak-server (Docker), SSH |
-
-## Module Pattern Reference
-
-### Simple Package Module
-```nix
-{ pkgs, ... }: {
-  home.packages = with pkgs; [ toolname ];
-}
-```
-
-### Program Configuration Module
-```nix
-{ config, lib, pkgs, ... }: {
-  programs.toolname = {
-    enable = true;
-    # options...
-  };
-}
-```
-
-### Module with Activation Script
-```nix
-{ config, lib, pkgs, ... }: let
-  # local bindings
-in {
-  home.packages = [ ... ];
-  home.activation.scriptName = lib.hm.dag.entryAfter ["writeBoundary"] ''
-    # shell commands
-  '';
-}
-```
-
-### NixOS Service Module
-```nix
-{ config, lib, pkgs, ... }: let
-  cfg = config.services.servicename;
-in {
-  options.services.servicename = {
-    enable = lib.mkEnableOption "description";
-    # more options with lib.mkOption
-  };
-  config = lib.mkIf cfg.enable {
-    # implementation
-  };
-}
-```
+| Host | Platform | System | Key Modules | Services |
+|------|----------|--------|-------------|----------|
+| `pc-hylia` | macOS | aarch64-darwin | ghostty, nushell, zsh, tunnel9, atac, scrcpy, android-tools | SSH |
+| `server-tenoko` | NixOS | x86_64-linux | nushell (via bash auto-exec), tmux, opencode | tak-server (Docker), SSH |
 
 ## Notes
 
-- `1password.nix` is fully commented out (WIP)
 - `wezterm.nix` has `enable = false` (disabled in favor of ghostty)
+- `traefik-cf-tunnel.nix` exists but is empty (WIP)
 - Server uses bash→nushell auto-exec (`programs.bash.interactiveShellInit`)
-- neovim config lives externally at `github:OnTheWehn333/nvim-config`
+- Neovim config lives externally at `github:OnTheWehn333/nvim-config`
+- `keysync.yaml` at repo root defines GPG key hierarchy and per-host subkey assignments
+- Both hosts share the same GPG signing key but have unique encrypt/auth subkeys
