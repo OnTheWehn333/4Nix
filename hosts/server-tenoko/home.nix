@@ -5,6 +5,7 @@
   ...
 }: let
   gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
+  gpgSigningKeys = import ../shared/gpg-signing-keys.nix;
 in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
@@ -19,6 +20,7 @@ in {
     ../../home-modules/tmux-sessionizer.nix
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
+    ../../home-modules/sops.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/server-tenoko/secrets.yaml;
@@ -27,6 +29,8 @@ in {
   services.gpg-agent.sshKeys = [
     gpgSshKeygrips.server-tenoko
   ];
+
+  programs.git.signing.key = gpgSigningKeys.server-tenoko;
 
   programs.home-manager.enable = true;
 

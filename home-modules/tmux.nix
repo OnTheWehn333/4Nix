@@ -16,6 +16,10 @@
       set-option -sa terminal-features ',xterm-ghostty:RGB'
       set-option -g focus-events on
 
+      # Use vi-style keys in copy mode and command prompt editing
+      setw -g mode-keys vi
+      set -g status-keys vi
+
       # Window/pane settings
       setw -g automatic-rename on
       set-option -g renumber-windows on

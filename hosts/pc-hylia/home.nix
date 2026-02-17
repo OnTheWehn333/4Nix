@@ -5,6 +5,7 @@
   ...
 }: let
   gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
+  gpgSigningKeys = import ../shared/gpg-signing-keys.nix;
 in {
   imports = [
     inputs.sops-nix-darwin.homeManagerModules.sops
@@ -26,6 +27,7 @@ in {
     ../../home-modules/chafa.nix
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
+    ../../home-modules/sops.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
@@ -35,7 +37,12 @@ in {
     gpgSshKeygrips.pc-hylia
   ];
 
-  programs.zsh.enable = true;
+  programs.git.signing.key = gpgSigningKeys.pc-hylia;
+
+  programs.zsh = {
+    enable = true;
+    defaultKeymap = "viins";
+  };
   programs.fzf.enable = true;
   programs.home-manager.enable = true;
 

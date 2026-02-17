@@ -26,3 +26,7 @@ $<keypath>=~/Documents/keys_backup/gpg-backup.asc
 $<trustpath>=~/Documents/keys_backup/gpg-trust.txt
 gpg --import --import-options restore $<keypath>
 gpg --import-ownertrust $<trustpath>
+
+
+#Sops Encrypt
+sops secrets/pc-hylia/secrets.yaml
