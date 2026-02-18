@@ -286,7 +286,7 @@ in {
 
     # Decrypt Context7 API key via sops-nix
     sops.secrets."context7-api-key" = {
-      sopsFile = ../../secrets/shared/secrets.yaml;
+      sopsFile = ../secrets/shared/secrets.yaml;
     };
 
     # Render config.json with the secret baked in — no post-generation mutation
