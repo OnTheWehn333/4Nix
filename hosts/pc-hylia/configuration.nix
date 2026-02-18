@@ -29,6 +29,7 @@ in {
 
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.server-tenoko
+    sshHostKeys.pc-akkala
   ];
 
   # Home-Manager entry point

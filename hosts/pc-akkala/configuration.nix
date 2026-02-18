@@ -2,27 +2,27 @@
   config,
   lib,
   pkgs,
+  inputs,
   ...
 }: let
   sshHostKeys = import ../shared/ssh-public-keys.nix;
 in {
   imports = [
-    # Import hardware configuration
-    ./hardware-configuration.nix
+    inputs.nixos-wsl.nixosModules.default
   ];
 
-  networking.hostName = "server-tenoko";
+  # WSL configuration
+  wsl.enable = true;
+  wsl.defaultUser = "noahbalboa66";
 
-  # Boot configuration
-  boot.loader.grub.enable = true;
-  boot.loader.grub.device = "/dev/vda";
+  networking.hostName = "pc-akkala";
 
   nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
 
   # Define a user account
   users.users.noahbalboa66 = {
     isNormalUser = true;
-    extraGroups = ["wheel" "networkmanager"];
+    extraGroups = ["wheel"];
     packages = [];
     shell = pkgs.nushell;
   };
@@ -40,16 +40,16 @@ in {
 
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.pc-hylia
-    sshHostKeys.pc-akkala
+    sshHostKeys.server-tenoko
   ];
 
   # Add system-wide packages
   environment.systemPackages = with pkgs; [
     vim
     git
-    tmux
-    # Any other system packages you want to install
+    rsync
   ];
+
   home-manager.users.noahbalboa66 = import ./home.nix;
 
   # This value determines the NixOS release with which your system is to be compatible

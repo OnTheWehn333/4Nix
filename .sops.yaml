@@ -7,6 +7,10 @@ creation_rules:
     pgp: >-
       A32D22B699D9A13E45370FE8B54D20EA017DFE98
 
+  - path_regex: secrets/pc-akkala/.*
+    pgp: >-
+      A29F30C3569257C767D841D03F5D99026A037C37
+
   - path_regex: secrets/shared/.*
     pgp: >-
       ED5B989EAFE0BA8BC46DE29737E14339C2B7F4E6,

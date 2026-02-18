@@ -27,6 +27,15 @@ keys:
       auth:
         fingerprint: "8E4A14F922FCB840F987868279B3ADFEFB6A4C48"
 
+  pc-akkala:
+    title: "keysync/gpg/pc-akkala"
+    fingerprint: "A29F30C3569257C767D841D03F5D99026A037C37"
+    subkeys:
+      encrypt:
+        fingerprint: "56A0CFAF2FA81E4F1CDB8E0C9047922BC4682874"
+      auth:
+        fingerprint: "7A445DD9A9F386C5614D7D9E0625874F0DD7DF55"
+
 hosts:
   pc-hylia:
     keys:
@@ -39,3 +48,9 @@ hosts:
       - identity.signing
       - server-tenoko.encrypt
       - server-tenoko.auth
+
+  pc-akkala:
+    keys:
+      - identity.signing
+      - pc-akkala.encrypt
+      - pc-akkala.auth

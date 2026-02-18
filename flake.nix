@@ -27,6 +27,12 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
+    # NixOS-WSL for WSL hosts
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # sops-nix for secret management
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -99,6 +105,44 @@
         }
         ({lib, ...}: {
           home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/server-tenoko/home-bootstrap.nix);
+        })
+      ];
+    };
+
+    ####################################################
+    ## WSL host
+    nixosConfigurations.pc-akkala = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      specialArgs = {inherit inputs;};
+      modules = [
+        ./hosts/pc-akkala/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
+    ## WSL bootstrap (minimal HM profile for key restore dependencies)
+    nixosConfigurations.pc-akkala-bootstrap = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      specialArgs = {inherit inputs;};
+      modules = [
+        ./hosts/pc-akkala/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+        ({lib, ...}: {
+          home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/pc-akkala/home-bootstrap.nix);
         })
       ];
     };
