@@ -12,4 +12,5 @@
   };
 in {
   home.packages = [tmuxSessionizer];
+  home.shellAliases.ts = "tmux-sessionizer";
 }
