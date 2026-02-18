@@ -18,6 +18,12 @@ in {
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
+    ../../home-modules/tunnel9.nix
+    ../../home-modules/atac.nix
+    ../../home-modules/scrcpy.nix
+    ../../home-modules/android-tools.nix
+    ../../home-modules/agenix.nix
+    ../../home-modules/chafa.nix
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
     ../../home-modules/sops.nix
@@ -32,13 +38,15 @@ in {
 
   programs.git.signing.key = gpgSigningKeys.pc-akkala;
 
+  programs.zsh = {
+    enable = true;
+    defaultKeymap = "viins";
+  };
+  programs.fzf.enable = true;
   programs.home-manager.enable = true;
 
   # opencode: set useLatest = true to build from GitHub source
-  programs.opencode = {
-    enable = true;
-    # useLatest = true;  # Uncomment to use bleeding-edge from GitHub
-  };
+  custom.opencode.useLatest = true;
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [

@@ -24,14 +24,10 @@ in {
     isNormalUser = true;
     extraGroups = ["wheel"];
     packages = [];
-    shell = pkgs.nushell;
+    shell = pkgs.zsh;
   };
 
-  programs.bash.interactiveShellInit = ''
-    if ! [ "$TERM" = "dumb" ] && [ -z "$BASH_EXECUTION_STRING" ]; then
-      exec nu
-    fi
-  '';
+  programs.zsh.enable = true;
 
   # Set your time zone
   time.timeZone = "America/Chicago";
@@ -47,6 +43,8 @@ in {
   environment.systemPackages = with pkgs; [
     vim
     git
+    nodejs
+    yarn
     rsync
   ];
 
