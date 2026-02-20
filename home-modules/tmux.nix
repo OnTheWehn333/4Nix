@@ -1,4 +1,7 @@
 {pkgs, ...}: {
+  # Ghostty terminfo so tmux works when SSH'ing from ghostty
+  home.packages = [pkgs.ghostty.terminfo];
+
   programs.tmux = {
     enable = true;
 

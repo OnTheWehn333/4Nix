@@ -17,5 +17,6 @@
     enableBashIntegration = true;
     enableNushellIntegration = true;
     enableZshIntegration = true;
+    pinentryPackage = pkgs.pinentry-curses;
   };
 }
