@@ -19,10 +19,11 @@ in {
       # Only include lazy-nvim since your config uses it to manage other plugins
       lazy-nvim
     ];
-    # Only include the base dependencies needed for Mason to work
     extraPackages = with pkgs; (
       [
+        # Base dependencies
         nodejs
+        python3
         curl
         unzip
         ripgrep
@@ -31,6 +32,30 @@ in {
         gh
         tmux
         go
+
+        # LSPs & formatters (Nix-provided, bypass Mason on NixOS)
+        alejandra
+        lua-language-server
+        nil
+        rust-analyzer
+        stylua
+        gopls
+        terraform-ls
+        yamlfmt
+        kulala-fmt
+        netcoredbg
+
+        # JVM tools
+        jdk
+        jdt-language-server
+        ktlint
+        kotlin-language-server
+        google-java-format
+
+        # .NET tools
+        dotnet-sdk
+        csharpier
+        roslyn-ls
       ]
       ++ lib.optionals (!isDarwin) [gcc gnumake binutils glibc]
     );
