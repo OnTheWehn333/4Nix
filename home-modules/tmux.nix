@@ -36,9 +36,8 @@
       set -g status-right-length 20
 
       # Enable OSC 52 clipboard passthrough
-      set -g set-clipboard on
-      set -g allow-passthrough on
-      set -ag terminal-overrides ",*:Ms=\\E]52;c;%p2%s\\7"
+      set -g set-clipboard external
+      set -g allow-passthrough all
 
       # Key bindings
       bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
