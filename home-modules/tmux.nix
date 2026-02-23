@@ -1,6 +1,6 @@
-{pkgs, ...}: {
+{pkgs, lib, ...}: {
   # Ghostty terminfo so tmux works when SSH'ing from ghostty
-  home.packages = [pkgs.ghostty.terminfo];
+  home.packages = lib.optionals (!pkgs.stdenv.isDarwin) [pkgs.ghostty.terminfo];
 
   programs.tmux = {
     enable = true;
