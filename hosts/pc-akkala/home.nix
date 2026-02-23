@@ -46,8 +46,6 @@ in {
   programs.fzf.enable = true;
   programs.home-manager.enable = true;
 
-  # opencode: set useLatest = true to build from GitHub source
-  custom.opencode.useLatest = true;
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [

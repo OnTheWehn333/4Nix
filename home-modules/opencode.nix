@@ -4,7 +4,6 @@
   pkgs,
   ...
 }: let
-  cfg = config.custom.opencode;
 
   # OpenCode config — defined here so we can inject sops secrets via template
   baseSettings = {
@@ -206,95 +205,25 @@
       config.sops.placeholder."context7-api-key";
   };
 
-  # Platform-specific binary info
-  binaryInfo =
-    {
-      "aarch64-darwin" = {
-        filename = "opencode-darwin-arm64.zip";
-        hash = "sha256-XpzJD02E3hRbQJnHZmsPB4KxnlGWeVGBysNr4z28Xak=";
-        isZip = true;
-      };
-      "x86_64-darwin" = {
-        filename = "opencode-darwin-x64.zip";
-        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Update on first use
-        isZip = true;
-      };
-      "x86_64-linux" = {
-        filename = "opencode-linux-x64.tar.gz";
-        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Update on first use
-        isZip = false;
-      };
-      "aarch64-linux" = {
-        filename = "opencode-linux-arm64.tar.gz";
-        hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Update on first use
-        isZip = false;
-      };
-    }.${
-      pkgs.system
-    } or (throw "Unsupported system: ${pkgs.system}");
-
-  # Binary download for latest release
-  opencodeLatestBinary = pkgs.stdenv.mkDerivation {
-    pname = "opencode";
-    version = "latest";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/sst/opencode/releases/latest/download/${binaryInfo.filename}";
-      hash = binaryInfo.hash;
-    };
-
-    nativeBuildInputs =
-      if binaryInfo.isZip
-      then [pkgs.unzip]
-      else [pkgs.gnutar pkgs.gzip];
-
-    unpackPhase =
-      if binaryInfo.isZip
-      then "unzip $src"
-      else "tar -xzf $src";
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp opencode $out/bin/
-      chmod +x $out/bin/opencode
-    '';
-
-    meta = {
-      description = "AI coding assistant";
-      homepage = "https://github.com/sst/opencode";
-      platforms = ["aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux"];
-    };
-  };
 
 in {
   imports = [
     ./opencode-profiles.nix
   ];
 
-  options.custom.opencode = {
-    useLatest = lib.mkEnableOption "use latest GitHub binary instead of nixpkgs";
-  };
 
   config = {
     home.packages = [pkgs.bun];
-
     # Package install + enable (config.json managed by sops.templates below)
-    programs.opencode = {
-      enable = true;
-      package = lib.mkIf cfg.useLatest opencodeLatestBinary;
-    };
-
-    # Decrypt Context7 API key via sops-nix
+    programs.opencode.enable = true;
     sops.secrets."context7-api-key" = {
       sopsFile = ../secrets/shared/secrets.yaml;
     };
-
     # Render config.json with the secret baked in — no post-generation mutation
     sops.templates."opencode-config" = {
       content = builtins.toJSON (lib.recursiveUpdate baseSettings secretSettings);
       path = "${config.xdg.configHome}/opencode/config.json";
     };
-
     # Install Playwright Chromium browser for MCP server
     home.activation.installPlaywrightBrowsers = lib.hm.dag.entryAfter ["writeBoundary"] ''
       ${pkgs.bun}/bin/bunx playwright install chromium 2>/dev/null || echo "Note: Playwright browser install deferred to first use"
