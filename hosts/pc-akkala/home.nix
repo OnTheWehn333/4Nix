@@ -27,6 +27,7 @@ in {
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
     ../../home-modules/sops.nix
+    ../../home-modules/clipboard.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
