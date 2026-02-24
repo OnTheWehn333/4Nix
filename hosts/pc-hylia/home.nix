@@ -40,13 +40,14 @@ in {
 
   programs.git.signing.key = gpgSigningKeys.pc-hylia;
 
+  custom.oh-my-posh.hostColor = "#7aa2f7"; # Lake Hylia — serene blue waters
+
   programs.zsh = {
     enable = true;
     defaultKeymap = "viins";
   };
   programs.fzf.enable = true;
   programs.home-manager.enable = true;
-
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [

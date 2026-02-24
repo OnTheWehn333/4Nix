@@ -33,6 +33,8 @@ in {
 
   programs.git.signing.key = gpgSigningKeys.server-tenoko;
 
+  custom.oh-my-posh.hostColor = "#2ac3de"; # Tenoko Island — Necluda Sea teal
+
   programs.home-manager.enable = true;
 
   # opencode: set useLatest = true to build from GitHub source

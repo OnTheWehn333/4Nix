@@ -39,6 +39,8 @@ in {
 
   programs.git.signing.key = gpgSigningKeys.pc-akkala;
 
+  custom.oh-my-posh.hostColor = "#e0af68"; # Akkala — autumn leaves, warm amber
+
   programs.zsh = {
     enable = true;
     defaultKeymap = "viins";

@@ -5,6 +5,7 @@ static_dirs=(
     "$HOME/"
     "$HOME/tmp/"
     "$HOME/4Vault/"
+    "$HOME/projects/"
 )
 
 if [[ $# -eq 1 ]]; then
