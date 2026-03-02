@@ -4,7 +4,6 @@
   pkgs,
   ...
 }: let
-
   # OpenCode config — defined here so we can inject sops secrets via template
   baseSettings = {
     "$schema" = "https://opencode.ai/config.json";
@@ -32,7 +31,7 @@
       "opencode-antigravity-auth"
       "opencode-openai-codex-auth"
       "opencode-plugin-openspec"
-      "@franlol/opencode-md-table-formatter@0.0.3"
+      "@franlol/opencode-md-table-formatter"
     ];
 
     provider = {
@@ -237,13 +236,10 @@
     mcp.context7.headers.CONTEXT7_API_KEY =
       config.sops.placeholder."context7-api-key";
   };
-
-
 in {
   imports = [
     ./opencode-profiles.nix
   ];
-
 
   config = {
     home.packages = [pkgs.bun];
