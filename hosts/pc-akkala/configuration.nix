@@ -22,7 +22,7 @@ in {
   # Define a user account
   users.users.noahbalboa66 = {
     isNormalUser = true;
-    extraGroups = ["wheel"];
+    extraGroups = ["wheel" "docker"];
     linger = true;
     packages = [];
     shell = pkgs.zsh;
@@ -57,6 +57,8 @@ in {
   ];
 
   home-manager.users.noahbalboa66 = import ./home.nix;
+
+  wsl.docker-desktop.enable = true;
 
   # This value determines the NixOS release with which your system is to be compatible
   system.stateVersion = "25.11";
