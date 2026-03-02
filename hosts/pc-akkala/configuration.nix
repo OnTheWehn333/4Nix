@@ -40,6 +40,13 @@ in {
     sshHostKeys.server-tenoko
   ];
 
+  # Enable nix-ld for dynamic binary compatibility (LSP servers, etc.)
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    stdenv.cc.cc
+    zlib
+  ];
+
   # Add system-wide packages
   environment.systemPackages = with pkgs; [
     vim
