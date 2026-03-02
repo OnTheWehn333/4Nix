@@ -28,6 +28,10 @@ in {
     ../../home-modules/lazydocker.nix
     ../../home-modules/sops.nix
     ../../home-modules/clipboard.nix
+    # ../../home-modules/azure.nix
+    # ../../home-modules/kubernetes.nix
+    # ../../home-modules/terraform.nix
+    # ../../home-modules/ssh.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
@@ -47,7 +51,7 @@ in {
   };
   programs.fzf.enable = true;
   programs.home-manager.enable = true;
-
+  systemd.user.startServices = false;
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [

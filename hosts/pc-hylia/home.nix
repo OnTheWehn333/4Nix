@@ -29,6 +29,10 @@ in {
     ../../home-modules/lazydocker.nix
     ../../home-modules/sops.nix
     ../../home-modules/clipboard.nix
+    ../../home-modules/azure.nix
+    ../../home-modules/kubernetes.nix
+    ../../home-modules/terraform.nix
+    ../../home-modules/ssh.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;

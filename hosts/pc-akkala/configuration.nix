@@ -23,6 +23,7 @@ in {
   users.users.noahbalboa66 = {
     isNormalUser = true;
     extraGroups = ["wheel"];
+    linger = true;
     packages = [];
     shell = pkgs.zsh;
   };

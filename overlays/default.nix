@@ -10,6 +10,7 @@
   # Packages you want to override live here 👇
   modifications = final: prev: {
     opencode = final.unstable.opencode;
+    azure-cli = final.unstable.azure-cli;
 
     tmuxPlugins = prev.tmuxPlugins // {
       tome = prev.tmuxPlugins.mkTmuxPlugin {
