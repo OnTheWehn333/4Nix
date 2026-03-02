@@ -33,6 +33,7 @@ in {
     ../../home-modules/kubernetes.nix
     ../../home-modules/terraform.nix
     ../../home-modules/ssh.nix
+    ../../home-modules/obsidian.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
