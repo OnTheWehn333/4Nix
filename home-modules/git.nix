@@ -11,5 +11,6 @@
       name = "noahbalboa66";
       email = "noahwehn@gmail.com";
     };
+    settings.pull.rebase = true;
   };
 }
