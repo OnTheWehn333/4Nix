@@ -10,16 +10,6 @@
   ];
 
   programs.gpg.enable = true;
-
-  # Ensure gpg-agent can find the current terminal for pinentry.
-  # This is required for SSH sessions and non-local TTYs.
-  programs.bash.initExtra = ''
-    export GPG_TTY=$(tty)
-  '';
-  programs.zsh.initContent = ''
-    export GPG_TTY=$(tty)
-  '';
-
   services.gpg-agent = {
     enable = true;
     enableSshSupport = true;
@@ -28,4 +18,16 @@
     enableZshIntegration = true;
     pinentry.package = pkgs.pinentry-curses;
   };
+
+  # Ensure GPG_TTY is set for all shells — HM's gpg-agent integration may not
+  # run early enough (e.g. server-tenoko's bash→nushell exec happens before bashrc).
+  programs.bash.initExtra = lib.mkBefore ''
+    export GPG_TTY="$(tty)"
+  '';
+  programs.zsh.initExtra = lib.mkBefore ''
+    export GPG_TTY="$(tty)"
+  '';
+  programs.nushell.extraEnv = lib.mkBefore ''
+    $env.GPG_TTY = (^tty | str trim)
+  '';
 }
