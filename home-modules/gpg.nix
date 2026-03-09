@@ -24,7 +24,7 @@
   programs.bash.initExtra = lib.mkBefore ''
     export GPG_TTY="$(tty)"
   '';
-  programs.zsh.initExtra = lib.mkBefore ''
+  programs.zsh.initContent = lib.mkBefore ''
     export GPG_TTY="$(tty)"
   '';
   programs.nushell.extraEnv = lib.mkBefore ''

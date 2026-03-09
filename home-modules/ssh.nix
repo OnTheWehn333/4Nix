@@ -6,6 +6,7 @@
 }: {
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
 
     matchBlocks."*" = {
       # Keep connections alive across idle periods / NAT timeouts
