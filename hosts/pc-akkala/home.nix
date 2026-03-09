@@ -26,6 +26,7 @@ in {
     ../../home-modules/chafa.nix
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
+    ../../home-modules/kafka.nix
     ../../home-modules/sops.nix
     ../../home-modules/clipboard.nix
     ../../home-modules/obsidian.nix
