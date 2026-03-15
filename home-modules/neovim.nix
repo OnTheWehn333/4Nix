@@ -32,6 +32,7 @@ in {
         gh
         tmux
         go
+        postgresql
 
         # LSPs & formatters (Nix-provided, bypass Mason on NixOS)
         alejandra
