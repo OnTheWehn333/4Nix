@@ -8,5 +8,5 @@
   # Additional dev tools not in separate files
   programs.lazygit.enable = true;
 
-  home.packages = with pkgs; [jq curl];
+  home.packages = with pkgs; [jq curl postgresql];
 }

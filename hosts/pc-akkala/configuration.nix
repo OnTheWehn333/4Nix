@@ -58,6 +58,7 @@ in {
 
   home-manager.users.noahbalboa66 = import ./home.nix;
 
+  users.groups.docker = {};
   wsl.docker-desktop.enable = true;
 
   # This value determines the NixOS release with which your system is to be compatible
