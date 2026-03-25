@@ -3,6 +3,7 @@ let
   dotnet-combined = with pkgs.dotnetCorePackages; combinePackages [
     sdk_8_0
     sdk_9_0
+    sdk_10_0
   ];
 in {
   home.packages = with pkgs; [
@@ -10,6 +11,10 @@ in {
     csharpier
     roslyn-ls
     netcoredbg
+    httpgenerator
+  ];
+  home.sessionPath = [
+    "${config.home.homeDirectory}/.dotnet/tools"
   ];
   home.sessionVariables = {
     DOTNET_ROOT = "${dotnet-combined}";
