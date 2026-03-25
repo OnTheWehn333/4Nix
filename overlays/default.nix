@@ -12,6 +12,14 @@
     opencode = final.unstable.opencode;
     azure-cli = final.unstable.azure-cli;
 
+    httpgenerator = final.buildDotnetGlobalTool {
+      pname = "HttpGenerator";
+      version = "1.0.0";
+      nugetHash = "sha256-JESESLRyPmcK7XZowL0GOxkezGPBQqsZ54AeaCB4RKQ=";
+      dotnet-runtime = final.dotnetCorePackages.runtime_8_0;
+      executables = [ "httpgenerator" ];
+    };
+
     tmuxPlugins = prev.tmuxPlugins // {
       tome = prev.tmuxPlugins.mkTmuxPlugin {
         pluginName = "tome";
