@@ -35,6 +35,11 @@ in {
 
   services.openssh.enable = true;
   services.tailscale.enable = true;
+  systemd.services.tailscaled.after = ["network-online.target"];
+  systemd.services.tailscaled.wants = ["network-online.target"];
+  systemd.services.tailscaled.serviceConfig.ExecStartPre = [
+    "-${pkgs.iproute2}/bin/ip link delete tailscale0"
+  ];
 
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.pc-hylia
