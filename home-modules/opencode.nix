@@ -228,6 +228,58 @@
           };
         };
       };
+
+      # OpenCode Go tier — subscription-based Chinese models (GLM, Kimi, MiniMax)
+      # Routes through OpenCode's infrastructure (opencode-go/ prefix), not direct to Infini-AI
+      opencode-go = {
+        name = "OpenCode Go";
+        models = {
+          "glm-5" = {
+            name = "GLM-5";
+            limit = {
+              context = 128000;
+              output = 8192;
+            };
+            modalities = {
+              input = ["text"];
+              output = ["text"];
+            };
+          };
+          "kimi-k2.5" = {
+            name = "Kimi K2.5";
+            limit = {
+              context = 256000;
+              output = 8192;
+            };
+            modalities = {
+              input = ["text" "image"];
+              output = ["text"];
+            };
+          };
+          "minimax-m2.5" = {
+            name = "MiniMax M2.5";
+            limit = {
+              context = 128000;
+              output = 8192;
+            };
+            modalities = {
+              input = ["text"];
+              output = ["text"];
+            };
+          };
+          "minimax-m2.7" = {
+            name = "MiniMax M2.7";
+            limit = {
+              context = 128000;
+              output = 8192;
+            };
+            modalities = {
+              input = ["text"];
+              output = ["text"];
+            };
+          };
+        };
+      };
     };
   };
 
