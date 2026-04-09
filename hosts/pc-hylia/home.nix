@@ -35,6 +35,7 @@ in {
     ../../home-modules/terraform.nix
     ../../home-modules/ssh.nix
     ../../home-modules/obsidian.nix
+    ../../home-modules/akkala-connect.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
