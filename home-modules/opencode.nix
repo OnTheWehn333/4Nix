@@ -21,7 +21,7 @@
       };
       playwright = {
         type = "local";
-        command = ["bunx" "@playwright/mcp@latest" "--browser" "chromium"];
+        command = ["mcp-server-playwright" "--browser" "chromium"];
         enabled = true;
       };
     };
@@ -294,7 +294,7 @@ in {
   ];
 
   config = {
-    home.packages = [pkgs.bun];
+    home.packages = [pkgs.bun pkgs.playwright-mcp];
     # Package install + enable (config.json managed by sops.templates below)
     programs.opencode.enable = true;
     sops.secrets."context7-api-key" = {
@@ -305,9 +305,6 @@ in {
       content = builtins.toJSON (lib.recursiveUpdate baseSettings secretSettings);
       path = "${config.xdg.configHome}/opencode/config.json";
     };
-    # Install Playwright Chromium browser for MCP server
-    home.activation.installPlaywrightBrowsers = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      ${pkgs.bun}/bin/bunx playwright install chromium 2>/dev/null || echo "Note: Playwright browser install deferred to first use"
-    '';
+
   };
 }
