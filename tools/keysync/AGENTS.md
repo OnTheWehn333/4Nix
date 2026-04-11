@@ -37,6 +37,7 @@ keysync/
 - `internal/` packages — not importable externally
 - Config file lives at repo root (`keysync.yaml`), NOT inside this directory
 - No tests (`doCheck = false` in nix build) — CLI tool tested manually
+- Internal package ownership and boundary rules live in `tools/keysync/internal/AGENTS.md`
 
 ## Notes
 

@@ -39,6 +39,7 @@ hosts/
 - GPG fingerprints live ONLY in `shared/*.nix` — never hardcoded in host configs
 - `sops.defaultSopsFile` points to `../../secrets/{host}/secrets.yaml`
 - Bootstrap configs import only `keysync.nix` + `home-manager` — for first-time key restore
+- `shared/` has its own guidance in `hosts/shared/AGENTS.md`; keep this file host-flow focused
 
 ## Host Differences
 
