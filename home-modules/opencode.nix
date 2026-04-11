@@ -100,7 +100,7 @@
   };
 in {
   imports = [
-    ./opencode-profiles.nix
+    ./opencode-config.nix
   ];
 
   config = {
