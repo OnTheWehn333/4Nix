@@ -35,14 +35,22 @@ normalize_priority_csv() {
   fi
 
   local invalid
-  invalid=$(echo "$json" | jq -r --argjson providers "$PROVIDER_NAMES" '.[] | select(($providers | has(.)) | not)')
+  invalid=$(echo "$json" | jq -r --argjson providers "$PROVIDER_NAMES" '.[] | select($providers[.] == null)')
   if [ -n "$invalid" ]; then
     echo "ERROR: Unknown provider(s): $(echo "$invalid" | paste -sd ',')" >&2
     echo "Valid providers: $(echo "$PROVIDER_NAMES" | jq -r 'keys | join(", ")')" >&2
     return 1
   fi
 
-  echo "$json" | jq -r 'unique | join(",")'
+  # Deduplicate while preserving user-specified order (jq 'unique' sorts — avoid it)
+  echo "$json" | jq -r '
+    reduce .[] as $p (
+      {seen: {}, result: []};
+      if .seen[$p] then .
+      else {seen: (.seen + {($p): true}), result: (.result + [$p])}
+      end
+    ) | .result | join(",")
+  '
 }
 
 resolve_model() {
