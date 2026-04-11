@@ -31,8 +31,9 @@
   };
 
   # ── Static config fields ──────────────────────────────────────────────────
+  schemaUrl = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
+
   staticConfig = {
-    "$schema" = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
     google_auth = false;
     git_master = {
       commit_footer = false;
@@ -335,7 +336,8 @@
       priority = providerPriority;
     };
   in
-    staticConfig
+    {"$schema" = schemaUrl;}
+    // staticConfig
     // {
       "_meta" = meta;
       agents = resolvedAgents;
@@ -367,6 +369,7 @@
       TIER_DATA='${tierDataJson}'
       AGENT_EXTRAS='${agentExtrasJson}'
       STATIC_CONFIG='${staticConfigJson}'
+      SCHEMA_URL='${schemaUrl}'
       DEFAULT_PRIORITY='${defaultPriorityJson}'
       PROVIDER_NAMES='${providerNamesJson}'
 

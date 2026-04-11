@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2016
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 OC_CONFIG_DIR="$CONFIG_HOME/opencode"
@@ -158,8 +157,12 @@ generate_config_json() {
     --arg ts "$timestamp" \
     '{generated_by:"opencode-config",tier:$tier,priority:$priority,generated_at:$ts}')
 
-  echo "$STATIC_CONFIG" | jq --argjson meta "$meta" --argjson agents "$agents_json" --argjson cats "$categories_json" \
-    '. + {_meta:$meta, agents:$agents, categories:$cats}'
+  echo "$STATIC_CONFIG" | jq \
+    --arg schema "$SCHEMA_URL" \
+    --argjson meta "$meta" \
+    --argjson agents "$agents_json" \
+    --argjson cats "$categories_json" \
+    '{"\u0024schema":$schema} + . + {_meta:$meta, agents:$agents, categories:$cats}'
 }
 
 read_stored_providers() {
