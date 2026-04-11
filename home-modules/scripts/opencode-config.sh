@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2016
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 OC_CONFIG_DIR="$CONFIG_HOME/opencode"
@@ -227,18 +228,22 @@ cmd_generate() {
   else
     priority_csv=$(read_stored_providers) || return 1
     if [ -z "$priority_csv" ]; then
-      echo "Select providers (Tab to multi-select, Enter to confirm):"
-      local selected
-      selected=$(echo "$PROVIDER_NAMES" | jq -r 'to_entries[] | .key + " — " + .value' | fzf --multi --prompt="Providers> " --height=40% --reverse || true)
-      if [ -z "$selected" ]; then
-        echo "ERROR: No providers selected" >&2
-        return 1
-      fi
+      if [ -t 0 ] && [ -t 1 ]; then
+        echo "Select providers (Tab to multi-select, Enter to confirm):"
+        local selected
+        selected=$(echo "$PROVIDER_NAMES" | jq -r 'to_entries[] | .key + " — " + .value' | fzf --multi --prompt="Providers> " --height=40% --reverse || true)
+        if [ -z "$selected" ]; then
+          echo "ERROR: No providers selected" >&2
+          return 1
+        fi
 
-      local provider_keys_json
-      provider_keys_json=$(echo "$selected" | jq -R -s 'split("\n") | map(select(length > 0) | split(" — ")[0])')
-      priority_csv=$(echo "$provider_keys_json" | jq -r 'join(",")')
-      priority_csv=$(normalize_priority_csv "$priority_csv") || return 1
+        local provider_keys_json
+        provider_keys_json=$(echo "$selected" | jq -R -s 'split("\n") | map(select(length > 0) | split(" — ")[0])')
+        priority_csv=$(echo "$provider_keys_json" | jq -r 'join(",")')
+        priority_csv=$(normalize_priority_csv "$priority_csv") || return 1
+      else
+        priority_csv=$(echo "$DEFAULT_PRIORITY" | jq -r 'join(",")')
+      fi
       save_providers "$priority_csv" || return 1
     fi
   fi
