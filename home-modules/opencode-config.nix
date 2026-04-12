@@ -6,11 +6,9 @@
 }: let
   cfg = config.custom.opencode;
 
-  # ── Safety prompt for long-running processes ──────────────────────────────
   noLongRunningProcesses = ''
     PROCESS EXECUTION RULE: Never start long-lived or background processes (servers, watchers, docker-compose up, nix-build with --keep-going, dev servers, etc.) directly. Instead, output the exact command so the user can run it in their own tmux session. Short-lived commands that complete quickly (tests, linters, single builds, git operations) are fine to run directly.'';
 
-  # ── Agent extras ──────────────────────────────────────────────────────────
   agentExtras = {
     sisyphus = {
       prompt_append = noLongRunningProcesses;
@@ -30,7 +28,6 @@
     };
   };
 
-  # ── Static config fields ──────────────────────────────────────────────────
   schemaUrl = "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
 
   staticConfig = {
@@ -41,19 +38,21 @@
     };
   };
 
-  # ── Provider names (for interactive UI) ───────────────────────────────────
   providerNames = {
     copilot = "GitHub Copilot (subscription)";
     openai = "OpenAI (direct OAuth)";
-    google = "Google (Antigravity)";
+    google = "Google";
     "opencode-go" = "OpenCode Go (flat-rate)";
     opencode = "OpenCode Zen (pay-per-token)";
   };
 
-  # ── Default provider priority ──────────────────────────────────────────────
-  defaultProviderPriority = ["copilot" "openai" "google" "opencode-go" "opencode"];
+  defaultProviderPriority = ["openai" "google" "opencode-go" "copilot" "opencode"];
 
-  # ── Model catalog ─────────────────────────────────────────────────────────
+  providerDisplayOrder = map (p: {
+    key = p;
+    value = providerNames.${p};
+  }) defaultProviderPriority;
+
   modelCatalog = {
     claude-opus = {
       providers = {
@@ -170,208 +169,183 @@
     };
   };
 
-  # ── Tier assignments ──────────────────────────────────────────────────────
-  tierAssignments = {
+  modelPairs = {
+    claude-opus = "gpt-5-4";
+    gpt-5-4 = "claude-opus";
+    glm-5 = "kimi-k2-5";
+    kimi-k2-5 = "glm-5";
+    minimax-m2-7 = "kimi-k2-5";
+  };
+
+  agentGroups = {
+    "smart-high" = ["sisyphus" "prometheus" "oracle" "metis" "plan"];
+    "smart-low" = ["sisyphus-junior" "atlas"];
+    research = ["librarian" "explore"];
+  };
+
+  defaultGroupModelsByTier = {
     balanced = {
-      agents = {
-        sisyphus = "claude-opus";
-        prometheus = "claude-opus";
-        oracle = {
-          model = "gpt-5-4";
-          variant = "high";
-        };
-        metis = "claude-opus";
-        momus = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        librarian = "grok-code-fast";
-        explore = "grok-code-fast";
-        multimodal-looker = {
-          model = "gpt-5-4";
-          variant = "medium";
-        };
-        atlas = "claude-sonnet";
-        sisyphus-junior = "claude-sonnet";
-        build = "codex-5-3";
-        plan = {
-          model = "gpt-5-4";
-          variant = "high";
-        };
-        OpenCode-Builder = "codex-5-3";
-      };
-      categories = {
-        visual-engineering = {
-          model = "gemini-3-1-pro";
-          variant = "high";
-        };
-        ultrabrain = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        deep = "codex-5-3";
-        artistry = "gemini-3-1-pro";
-        quick = "gpt-5-4-mini";
-        unspecified-high = {
-          model = "claude-opus";
-          variant = "max";
-        };
-        unspecified-low = "claude-sonnet";
-        writing = "gemini-3-flash";
-      };
+      "smart-high" = "claude-opus";
+      "smart-low" = "claude-sonnet";
+      research = "gemini-3-flash";
     };
-
     max = {
-      agents = {
-        sisyphus = "claude-opus";
-        prometheus = "claude-opus";
-        oracle = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        metis = "claude-opus";
-        momus = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        librarian = "claude-opus";
-        explore = "claude-opus";
-        multimodal-looker = {
-          model = "gpt-5-4";
-          variant = "high";
-        };
-        atlas = "claude-opus";
-        sisyphus-junior = "claude-opus";
-        build = "codex-5-3";
-        plan = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        OpenCode-Builder = "codex-5-3";
-      };
-      categories = {
-        visual-engineering = {
-          model = "antigravity-pro-high";
-          variant = "high";
-        };
-        ultrabrain = {
-          model = "gpt-5-4";
-          variant = "xhigh";
-        };
-        deep = "codex-5-3";
-        artistry = {
-          model = "gemini-3-1-pro";
-          variant = "high";
-        };
-        quick = "gpt-5-4-mini";
-        unspecified-high = {
-          model = "claude-opus";
-          variant = "max";
-        };
-        unspecified-low = "claude-opus";
-        writing = "claude-sonnet";
-      };
+      "smart-high" = "claude-opus";
+      "smart-low" = "claude-opus";
+      research = "gemini-3-flash";
     };
-
     budget = {
-      agents = {
-        sisyphus = "kimi-k2-5";
-        prometheus = "glm-5";
-        oracle = "glm-5";
-        metis = "glm-5";
-        momus = "glm-5";
-        librarian = "minimax-m2-5";
-        explore = "minimax-m2-5";
-        multimodal-looker = "kimi-k2-5";
-        atlas = "minimax-m2-5";
-        sisyphus-junior = "minimax-m2-7";
-        build = "minimax-m2-7";
-        plan = "glm-5";
-        OpenCode-Builder = "minimax-m2-7";
-      };
-      categories = {
-        visual-engineering = "kimi-k2-5";
-        ultrabrain = "glm-5";
-        deep = "minimax-m2-7";
-        artistry = "kimi-k2-5";
-        quick = "minimax-m2-5";
-        unspecified-high = "glm-5";
-        unspecified-low = "minimax-m2-5";
-        writing = "minimax-m2-5";
-      };
+      "smart-high" = "kimi-k2-5";
+      "smart-low" = "minimax-m2-7";
+      research = "gemini-3-flash";
     };
   };
 
-  # ── Resolution engine (Nix-side, for seeding default config) ──────────────
-  # Resolves a logical model name + optional variant to concrete { model, variant?, ... }
-  # merged with agentExtras if the slot has extras.
+  defaultGroupModels = defaultGroupModelsByTier.${cfg.defaultTier};
+
+  shellDefaultGroupModels = {
+    smart_high = defaultGroupModels."smart-high";
+    smart_low = defaultGroupModels."smart-low";
+    research = defaultGroupModels.research;
+  };
+
+  fixedAgentModels = {
+    hephaestus = "gpt-5-4";
+    "multimodal-looker" = "gemini-3-1-pro";
+  };
+
+  defaultAgentModels = {
+    build = "codex-5-3";
+    OpenCode-Builder = "codex-5-3";
+  };
+
+  defaultCategoryModels = {
+    visual-engineering = "gemini-3-1-pro";
+    ultrabrain = "gpt-5-4";
+    deep = "codex-5-3";
+    artistry = "gemini-3-1-pro";
+    quick = "gpt-5-4-mini";
+    unspecified-high = "claude-opus";
+    unspecified-low = "claude-sonnet";
+    writing = "gemini-3-flash";
+  };
+
+  slotLogicalModel = slotSpec:
+    if builtins.isString slotSpec
+    then slotSpec
+    else slotSpec.model;
+
+  slotHasVariant = slotSpec:
+    builtins.isAttrs slotSpec && slotSpec ? variant;
+
+  slotVariantAttrs = slotSpec:
+    if slotHasVariant slotSpec
+    then {inherit (slotSpec) variant;}
+    else {};
+
   resolveSlot = providerPriority: slotName: slotSpec: let
-    logicalModel =
-      if builtins.isString slotSpec
-      then slotSpec
-      else slotSpec.model;
-    variant =
-      if builtins.isAttrs slotSpec && slotSpec ? variant
-      then {inherit (slotSpec) variant;}
-      else {};
+    logicalModel = slotLogicalModel slotSpec;
+    variantAttrs = slotVariantAttrs slotSpec;
     providers = modelCatalog.${logicalModel}.providers;
-    firstProvider = builtins.head (
-      builtins.filter (p: builtins.hasAttr p providers) providerPriority
-    );
-    resolvedModel = providers.${firstProvider};
+    availableProviders = builtins.filter (p: builtins.hasAttr p providers) providerPriority;
+    resolvedModel =
+      if availableProviders == []
+      then builtins.throw "No provider found for '${logicalModel}' in slot '${slotName}' with priority [${builtins.concatStringsSep "," providerPriority}]"
+      else providers.${builtins.head availableProviders};
+    fallbackModels = lib.unique (map (p: providers.${p}) (builtins.tail availableProviders));
+    fallbackAttrs =
+      if fallbackModels == []
+      then {}
+      else {
+        fallback_models =
+          if slotHasVariant slotSpec
+          then map (model: {inherit model;} // variantAttrs) fallbackModels
+          else fallbackModels;
+      };
     extras = agentExtras.${slotName} or {};
   in
-    {model = resolvedModel;} // variant // extras;
+    {model = resolvedModel;} // variantAttrs // fallbackAttrs // extras;
 
-  generateConfig = {
-    tier,
+  resolveCategorySlot = providerPriority: slotName: slotSpec:
+    builtins.removeAttrs (resolveSlot providerPriority slotName slotSpec) ["fallback_models" "prompt_append" "permission"];
+
+  generateGroupConfig = {
+    groupModels,
     providerPriority,
   }: let
-    tierData = tierAssignments.${tier};
-    resolvedAgents = lib.mapAttrs (resolveSlot providerPriority) tierData.agents;
-    resolvedCategories = lib.mapAttrs (resolveSlot providerPriority) tierData.categories;
+    smartHighSlot = groupModels."smart-high";
+    smartLowSlot = groupModels."smart-low";
+    researchSlot = groupModels.research;
+    smartHighLogicalModel = slotLogicalModel smartHighSlot;
+    smartLowLogicalModel = slotLogicalModel smartLowSlot;
+    researchLogicalModel = slotLogicalModel researchSlot;
+    momusLogicalModel = modelPairs.${smartHighLogicalModel} or "gpt-5-4";
+    resolvedAgents =
+      lib.genAttrs agentGroups."smart-high" (name: resolveSlot providerPriority name smartHighSlot)
+      // lib.genAttrs agentGroups."smart-low" (name: resolveSlot providerPriority name smartLowSlot)
+      // lib.genAttrs agentGroups.research (name: resolveSlot providerPriority name researchSlot)
+      // lib.mapAttrs (resolveSlot providerPriority) fixedAgentModels
+      // lib.mapAttrs (resolveSlot providerPriority) defaultAgentModels
+      // {
+        momus = resolveSlot providerPriority "momus" momusLogicalModel;
+      };
+    resolvedCategories = lib.mapAttrs (resolveCategorySlot providerPriority) defaultCategoryModels;
     meta = {
       generated_by = "opencode-config";
-      inherit tier;
+      preset = cfg.defaultTier;
+      smart_high = smartHighLogicalModel;
+      smart_low = smartLowLogicalModel;
+      research = researchLogicalModel;
+      momus = momusLogicalModel;
       priority = providerPriority;
     };
   in
     {"$schema" = schemaUrl;}
     // staticConfig
     // {
-      "_meta" = meta;
+      _meta = meta;
       agents = resolvedAgents;
       categories = resolvedCategories;
     };
 
-  # ── JSON serialization for shell script ───────────────────────────────────
   modelDataJson = builtins.toJSON modelCatalog;
-  tierDataJson = builtins.toJSON tierAssignments;
+  modelPairsJson = builtins.toJSON modelPairs;
+  agentGroupsJson = builtins.toJSON agentGroups;
+  defaultGroupModelsJson = builtins.toJSON shellDefaultGroupModels;
+  defaultAgentModelsJson = builtins.toJSON defaultAgentModels;
+  defaultCategoryModelsJson = builtins.toJSON defaultCategoryModels;
   agentExtrasJson = builtins.toJSON agentExtras;
   staticConfigJson = builtins.toJSON staticConfig;
   defaultPriorityJson = builtins.toJSON defaultProviderPriority;
   providerNamesJson = builtins.toJSON providerNames;
+  providerDisplayOrderJson = builtins.toJSON providerDisplayOrder;
 
   defaultConfigJson = builtins.toJSON (
-    generateConfig {
-      tier = cfg.defaultTier;
+    generateGroupConfig {
+      groupModels = defaultGroupModels;
       providerPriority = defaultProviderPriority;
     }
   );
 
-  # ── Shell script package ──────────────────────────────────────────────────
+  defaultProviderStateJson = builtins.toJSON {providers = defaultProviderPriority;};
+  defaultGroupStateJson = builtins.toJSON shellDefaultGroupModels;
+
   opencodeConfig = pkgs.writeShellApplication {
     name = "opencode-config";
     runtimeInputs = [pkgs.jq pkgs.coreutils pkgs.fzf];
     text = ''
-      # Baked-in model knowledge from Nix (do not edit — regenerated on rebuild)
       MODEL_CATALOG='${modelDataJson}'
-      TIER_DATA='${tierDataJson}'
+      MODEL_PAIRS='${modelPairsJson}'
+      AGENT_GROUPS='${agentGroupsJson}'
+      DEFAULT_GROUP_MODELS='${defaultGroupModelsJson}'
+      DEFAULT_AGENT_MODELS='${defaultAgentModelsJson}'
+      DEFAULT_CATEGORY_MODELS='${defaultCategoryModelsJson}'
       AGENT_EXTRAS='${agentExtrasJson}'
       STATIC_CONFIG='${staticConfigJson}'
       SCHEMA_URL='${schemaUrl}'
       DEFAULT_PRIORITY='${defaultPriorityJson}'
       PROVIDER_NAMES='${providerNamesJson}'
+      PROVIDER_DISPLAY_ORDER='${providerDisplayOrderJson}'
 
       ${builtins.readFile ./scripts/opencode-config.sh}
     '';
@@ -381,40 +355,62 @@ in {
     type = lib.types.enum ["balanced" "max" "budget"];
     default = "balanced";
     description = ''
-      Default quality tier for opencode-config generator.
-      Used when seeding the initial oh-my-opencode.json on first activation.
-      - balanced: Good defaults — Claude Opus for orchestration, Codex for coding
-      - max: Strongest available models across all roles
-      - budget: Prioritizes OpenCode Go tier (GLM-5, Kimi K2.5, MiniMax) for economy
+      Default preset for opencode-config group models.
+      Used when seeding the initial oh-my-openagent.json on first activation.
+      - balanced: Claude Opus for smart-high, Claude Sonnet for smart-low, Gemini Flash for research
+      - max: Claude Opus for both smart groups, Gemini Flash for research
+      - budget: Kimi K2.5 for smart-high, MiniMax M2.7 for smart-low, Gemini Flash for research
     '';
   };
 
   config = {
     home.packages = [opencodeConfig];
 
-    # Seed default oh-my-opencode.json if absent; handle migration from old profiles system
     home.activation.bootstrapOpencodeConfig = lib.hm.dag.entryAfter ["linkGeneration"] ''
       OPENCODE_DIR="${config.xdg.configHome}/opencode"
-      OPENCODE_CONFIG="$OPENCODE_DIR/oh-my-opencode.json"
+      OPENCODE_CONFIG="$OPENCODE_DIR/oh-my-openagent.json"
+      LEGACY_CONFIG="$OPENCODE_DIR/oh-my-opencode.json"
+      OPENCODE_STATE="$OPENCODE_DIR/opencode-config-state.json"
+      GROUP_MODELS_STATE="$OPENCODE_DIR/group-models.json"
+      SEEDED_DEFAULT_CONFIG=0
 
       mkdir -p "$OPENCODE_DIR"
 
-      # Migration: detect stale symlink pointing to deleted Nix store profile path
-      # (happens when upgrading from the old profiles module to this module)
       if [ -L "$OPENCODE_CONFIG" ]; then
         LINK_TARGET="$(readlink "$OPENCODE_CONFIG" 2>/dev/null || true)"
         if [ -n "$LINK_TARGET" ] && [ ! -e "$LINK_TARGET" ]; then
-          echo "opencode-config: removing stale profile symlink → seeding fresh default"
+          echo "opencode-config: removing stale config symlink → seeding fresh default"
           rm -f "$OPENCODE_CONFIG"
         fi
       fi
 
-      # Seed default config if no config file exists yet
+      if [ ! -f "$OPENCODE_CONFIG" ] && [ -f "$LEGACY_CONFIG" ] && [ ! -L "$LEGACY_CONFIG" ]; then
+        mv "$LEGACY_CONFIG" "$OPENCODE_CONFIG"
+        echo "opencode-config: migrated oh-my-opencode.json → oh-my-openagent.json"
+      fi
+
+      rm -f "$LEGACY_CONFIG.bak"
+
       if [ ! -f "$OPENCODE_CONFIG" ]; then
         cat > "$OPENCODE_CONFIG" <<'__OPENCODE_DEFAULT__'
 ${defaultConfigJson}
 __OPENCODE_DEFAULT__
-        echo "opencode-config: seeded default config (${cfg.defaultTier} tier, copilot-first)"
+        echo "opencode-config: seeded default config (${cfg.defaultTier} preset)"
+        SEEDED_DEFAULT_CONFIG=1
+      fi
+
+      if [ "$SEEDED_DEFAULT_CONFIG" = 1 ] && [ ! -f "$OPENCODE_STATE" ]; then
+        cat > "$OPENCODE_STATE" <<'__OPENCODE_DEFAULT_STATE__'
+${defaultProviderStateJson}
+__OPENCODE_DEFAULT_STATE__
+        echo "opencode-config: seeded default provider priority state"
+      fi
+
+      if [ "$SEEDED_DEFAULT_CONFIG" = 1 ] && [ ! -f "$GROUP_MODELS_STATE" ]; then
+        cat > "$GROUP_MODELS_STATE" <<'__OPENCODE_DEFAULT_GROUPS__'
+${defaultGroupStateJson}
+__OPENCODE_DEFAULT_GROUPS__
+        echo "opencode-config: seeded default group model state (${cfg.defaultTier} preset)"
       fi
     '';
   };
