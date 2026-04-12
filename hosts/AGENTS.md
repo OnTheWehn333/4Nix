@@ -10,13 +10,17 @@ hosts/
 │   ├── configuration.nix  # System: nix-darwin settings, SSH, system packages
 │   ├── home.nix           # HM: module imports, sops config, GPG/git keys
 │   └── home-bootstrap.nix # Minimal HM: keysync + home-manager only
+├── pc-akkala/             # WSL (x86_64-linux via NixOS-WSL)
+│   ├── configuration.nix  # System: WSL-specific settings
+│   ├── home.nix           # HM: module imports, sops config
+│   └── home-bootstrap.nix # Minimal HM: keysync + home-manager only
 ├── server-tenoko/         # NixOS (x86_64-linux)
 │   ├── configuration.nix  # System: boot, users, SSH, bash→nushell auto-exec
 │   ├── home.nix           # HM: module imports, sops config, GPG/git keys
 │   ├── home-bootstrap.nix # Minimal HM: keysync + home-manager only
 │   └── hardware-configuration.nix  # Auto-generated — DO NOT EDIT
-└── shared/                # Plain attrsets (NOT modules), imported by both hosts
-    ├── gpg-signing-keys.nix    # { pc-hylia = "..."; server-tenoko = "..."; }
+└── shared/                # Plain attrsets (NOT modules), imported by all hosts
+    ├── gpg-signing-keys.nix    # { pc-hylia = "..."; pc-akkala = "..."; server-tenoko = "..."; }
     ├── gpg-ssh-keygrips.nix    # Per-host SSH auth keygrips
     └── ssh-public-keys.nix     # Per-host SSH public keys (for authorized_keys)
 ```
@@ -26,10 +30,10 @@ hosts/
 | Task | File | Notes |
 |------|------|-------|
 | Add macOS-only module | `pc-hylia/home.nix` imports | Add to imports list |
-| Add NixOS-only module | `server-tenoko/home.nix` imports | Add to imports list |
-| Change system packages | `{host}/configuration.nix` | `environment.systemPackages` |
+| Add NixOS-only module | `server-tenoko/home.nix` or `pc-akkala/home.nix` imports | Add to imports list |
+| Change system packages | `{host}/configuration.nix` | `environment.systemPackages` or `homebrew.casks` (macOS) |
 | Add SSH authorized key | `{host}/configuration.nix` | Uses `shared/ssh-public-keys.nix` |
-| Change GPG signing key | `shared/gpg-signing-keys.nix` | Both hosts share same signing key |
+| Change GPG signing key | `shared/gpg-signing-keys.nix` | All hosts share same signing subkey |
 | Add new host | Copy existing host dir, add entries in `flake.nix` | Need both normal + bootstrap configs |
 
 ## Conventions
@@ -43,13 +47,13 @@ hosts/
 
 ## Host Differences
 
-| Feature | pc-hylia | server-tenoko |
-|---------|----------|---------------|
-| Platform | nix-darwin | NixOS |
-| Shell | zsh (native) | bash → nushell (auto-exec) |
-| Extra modules | ghostty, tunnel9, atac, scrcpy, android-tools, agenix, chafa | — |
-| opencode | `custom.opencode.useLatest = true` | `programs.opencode.enable = true` |
-| Services | SSH | tak-server (Docker), SSH |
+| Feature | pc-hylia | pc-akkala | server-tenoko |
+|---------|----------|-----------|---------------|
+| Platform | nix-darwin | NixOS-WSL | NixOS |
+| Shell | zsh (native) | (default) | bash → nushell (auto-exec) |
+| Extra modules | ghostty, tunnel9, atac, scrcpy, android-tools, agenix, chafa | — | — |
+| opencode | `custom.opencode.useLatest = true` | `programs.opencode.enable = true` | `programs.opencode.enable = true` |
+| Services | SSH | — | tak-server (Docker), SSH |
 
 ## Anti-Patterns
 

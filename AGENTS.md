@@ -1,7 +1,7 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-04-10 America/Chicago
-**Commit:** 9638658
+**Generated:** 2026-04-12 America/Chicago
+**Commit:** 557d0dc
 **Branch:** master
 
 NixOS + nix-darwin + WSL flake with Home Manager. Three hosts, sops-nix secrets, and a custom Go `keysync` tool for GPG subkey sync.
@@ -24,6 +24,7 @@ NixOS + nix-darwin + WSL flake with Home Manager. Three hosts, sops-nix secrets,
 - `hosts/AGENTS.md` for host-level imports, bootstrap flow, and platform divergence.
 - `hosts/shared/AGENTS.md` for plain-attrset data rules (no module logic).
 - `home-modules/AGENTS.md` for HM module patterns and anti-patterns.
+- `home-modules/scripts/AGENTS.md` for shell-wrapper boundaries and Nix script integration.
 - `tools/keysync/AGENTS.md` for Go CLI boundaries and Nix bridge constraints.
 - `tools/keysync/internal/AGENTS.md` for internal package ownership rules.
 - `secrets/AGENTS.md` for encrypted secret lifecycle and `.sops.yaml` coupling.
@@ -89,6 +90,6 @@ go test ./...
 
 ## Notes
 
-- `home-modules/opencode-profiles.nix` is the largest complexity hotspot; treat changes as cross-cutting.
+- `home-modules/opencode-config.nix` and `home-modules/scripts/opencode-config.sh` are the main config-generation hotspot; treat edits as cross-cutting.
 - `keysync.nix` imports `gpg.nix`; this is the only home-module internal dependency.
 - No CI workflow is defined in repo; validation is command-driven.

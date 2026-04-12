@@ -20,6 +20,7 @@ Reusable Home Manager modules. One tool per file, imported by host `home.nix` fi
 | Add simple tool | Create `{tool}.nix`, add `home.packages` |
 | Bundle related tools | `bundles/dev-tools.nix` (imports git, neovim, rust) |
 | Add shell script | `scripts/` dir + `writeShellApplication` in module |
+| Change AI config generator | `opencode-config.nix` + `scripts/opencode-config.sh` |
 | Build Go package from source | See `tunnel9.nix` (remote) or `keysync.nix` (local) |
 | Custom HM option | See `opencode.nix` pattern: `options.custom.X` + `config = { ... }` |
 
@@ -39,6 +40,8 @@ Reusable Home Manager modules. One tool per file, imported by host `home.nix` fi
 ## Notes
 
 - `wezterm.nix`: `enable = false` — disabled in favor of ghostty
-- `opencode.nix`: Largest module (320 lines), handles multi-provider AI config + activation scripts
+- `opencode-config.nix`: ~420 lines — Nix-side model catalog + JSON generation hotspot
+- `scripts/opencode-config.sh`: ~970 lines — primary interactive logic hotspot; see `home-modules/scripts/AGENTS.md`
+- `opencode.nix`: 120 lines — SOPS template rendering + HM enablement (imports opencode-config.nix)
 - `keysync.nix` imports `gpg.nix` — only module with an internal dependency
 - `oh-my-posh.nix`: Dynamically patches built-in theme JSON with Tokyo Night colors

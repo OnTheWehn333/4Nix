@@ -18,6 +18,12 @@ Internal Go packages for `keysync`. Keep orchestration in `engine`, adapters in 
 - Treat key material as sensitive byte streams; avoid disk writes for transient secrets.
 - Keep config assumptions aligned with repo-root `keysync.yaml`.
 
+## Contracts
+
+- 1Password item titles come from `key.Title + "/" + subkeyName`; preserve that lookup shape when touching `config.ResolveRef` or `op` reads.
+- 1Password field names are stable API: `fingerprint`, `algorithm`, `capabilities`, `uid`, `created`, `expires`, `public_key`, `secret_key`, `sha256_public`, `sha256_secret`, `synced_at`.
+- Secret subkey exports must keep the `!` suffix convention before `gpg --export-secret-subkeys`; dropping it changes export scope.
+
 ## Anti-Patterns
 
 - **NEVER** couple `gpg` directly to `op`; coordinate through `engine`.
