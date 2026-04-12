@@ -169,6 +169,9 @@
     };
   };
 
+  # Note: modelPairs is intentionally asymmetric.
+  # If smart-high is minimax-m2-7, momus pairs with kimi-k2-5.
+  # But if smart-high is kimi-k2-5, momus pairs with glm-5.
   modelPairs = {
     claude-opus = "gpt-5-4";
     gpt-5-4 = "claude-opus";

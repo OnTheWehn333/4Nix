@@ -139,8 +139,8 @@ build_agent_config() {
     entry=$(echo "$entry" | jq --argjson f "$fallbacks" '. + {fallback_models:$f}')
   fi
 
-  # Merge extras
-  entry=$(echo "$entry $extras" | jq -s 'add')
+  # Merge extras (extras first so entry's model/fallback_models override extras if they exist)
+  entry=$(echo "$extras $entry" | jq -s 'add')
 
   echo "$entry"
 }
@@ -631,9 +631,7 @@ cmd_set() {
         local priority_count=1
 
         while [ -n "$remaining_providers" ]; do
-          local count
-          count=$(echo "$remaining_providers" | wc -l)
-          [ "$count" -eq 0 ] && break
+          [ -z "$remaining_providers" ] && break
 
           local prompt_text
           if [ "$priority_count" -eq 1 ]; then
@@ -703,7 +701,7 @@ cmd_set() {
     save_group_models "$current_smart_high" "$current_smart_low" "$current_research"
 
     local priority_csv
-    priority_csv=$(echo "$current" | jq -r '._meta.priority | join(",")')
+    priority_csv=$(echo "$current" | jq -r '._meta.priority // [] | join(",")')
     if [ -z "$priority_csv" ]; then
       priority_csv=$(read_stored_providers) || return 1
     fi
@@ -736,7 +734,7 @@ cmd_set() {
     fi
 
     local priority_csv
-    priority_csv=$(echo "$current" | jq -r '._meta.priority | join(",")')
+    priority_csv=$(echo "$current" | jq -r '._meta.priority // [] | join(",")')
 
     local entry
     entry=$(build_agent_config "$agent_name" "$agent_model" "$priority_csv") || return 1
@@ -762,7 +760,7 @@ cmd_set() {
     fi
 
     local priority_csv
-    priority_csv=$(echo "$current" | jq -r '._meta.priority | join(",")')
+    priority_csv=$(echo "$current" | jq -r '._meta.priority // [] | join(",")')
 
     local resolved
     resolved=$(resolve_model "$category_model" "$priority_csv") || return 1
