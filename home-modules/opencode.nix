@@ -28,9 +28,6 @@
 
     plugin = [
       "oh-my-opencode"
-      "opencode-antigravity-auth"
-      "opencode-openai-codex-auth"
-      "opencode-plugin-openspec"
       "@franlol/opencode-md-table-formatter"
     ];
 
@@ -89,7 +86,6 @@
           store = false;
         };
       };
-
     };
   };
 
@@ -115,6 +111,5 @@ in {
       content = builtins.toJSON (lib.recursiveUpdate baseSettings secretSettings);
       path = "${config.xdg.configHome}/opencode/config.json";
     };
-
   };
 }
