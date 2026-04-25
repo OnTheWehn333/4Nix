@@ -42,6 +42,14 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
+
+    # nix-skills: Nixpkgs overlay for AI agent skills from skills.sh
+    # SECURITY: No formal vetting policy - see AGENTS.md for security notes
+    # Update cadence: auto-updates every 3hrs upstream; we pin to flake.lock (manual update)
+    nix-skills = {
+      url = "github:sudosubin/nix-skills";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -57,6 +65,7 @@
     overlaysList = [
       overlays.unstable-packages # defines pkgs.unstable
       overlays.modifications # uses pkgs.unstable.tmux
+      inputs.nix-skills.overlays.default # AI agent skills (pkgs.skills.<owner>.<repo>.<skill>)
     ];
 
     linuxPkgs = import nixpkgs {

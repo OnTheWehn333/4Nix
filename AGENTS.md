@@ -93,3 +93,40 @@ go test ./...
 - `home-modules/opencode-config.nix` and `home-modules/scripts/opencode-config.sh` are the main config-generation hotspot; treat edits as cross-cutting.
 - `keysync.nix` imports `gpg.nix`; this is the only home-module internal dependency.
 - No CI workflow is defined in repo; validation is command-driven.
+
+## Node.js Management
+
+Node.js is managed declaratively via `home-modules/node.nix`:
+
+- **Global npm packages** (yarn, etc.) live in `node.nix` and are installed globally.
+- **Default Node version** is configurable via `node.defaultVersion` option (18/20/22, default: 22).
+- **Per-module Node versions** are allowed—modules can bring their own `nodejs_18`/`nodejs_20`/`nodejs_22` when needed.
+- Do NOT use `nvm`, `fnm`, or `volta`—they conflict with Nix's declarative model.
+
+## AI Skills (nix-skills)
+
+The `nix-skills` overlay provides AI agent skills from skills.sh ecosystem.
+
+**Security considerations** (as of 2026-04-25):
+- nix-skills has **no formal vetting/audit policy** (repo security page: "No security policy detected").
+- Commits are **unsigned**.
+- Upstream auto-updates every 3 hours via GitHub Actions.
+- **480k+ skills** from ~13k GitHub repos are packaged—no manual review.
+
+**Our approach**:
+- Pin to `flake.lock`—we do NOT auto-update to latest.
+- Only run `nix flake update` to intentionally pull new skill revisions after reviewing changes.
+- Treat skills as untrusted; do not run untrusted skills in environments with access to secrets.
+
+**Usage**:
+```nix
+# After adding nix-skills to flake.nix, skills are available at:
+pkgs.skills.<owner>.<repo>.<skill-name>
+
+# Example: kepano's obsidian skills
+pkgs.skills.kepano.obsidian-skills.obsidian-markdown
+```
+
+**Resources**:
+- Repo: https://github.com/sudosubin/nix-skills
+- Security: https://github.com/sudosubin/nix-skills/security

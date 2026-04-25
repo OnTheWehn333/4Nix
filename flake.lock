@@ -79,6 +79,26 @@
         "type": "github"
       }
     },
+    "nix-skills": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1775452536,
+        "narHash": "sha256-1MjzL/U5OtALBmsel4YHVSK9jr2c/YP4eXfi7lA5C+o=",
+        "owner": "sudosubin",
+        "repo": "nix-skills",
+        "rev": "c2d1958a5cdd7ee83f552c046fbc7cb43e8171e4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sudosubin",
+        "repo": "nix-skills",
+        "type": "github"
+      }
+    },
     "nixos-wsl": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -154,6 +174,7 @@
         "home-manager": "home-manager",
         "home-manager-darwin": "home-manager-darwin",
         "nix-darwin": "nix-darwin",
+        "nix-skills": "nix-skills",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
         "nixpkgs-darwin": "nixpkgs-darwin",
