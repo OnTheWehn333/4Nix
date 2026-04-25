@@ -70,6 +70,6 @@ in {
   # Obsidian: desktop app (Darwin default, syncMode = "gui")
   services.obsidian = {
     enable = true;
-    vaults = [ "4Vault" ];
+    vaults = [ "4Vault" "4V2" ];
   };
 }

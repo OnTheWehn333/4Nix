@@ -41,7 +41,7 @@ in {
   services.obsidian = {
     enable = true;
     syncMode = "headless";
-    vaults = [ "4Vault" ];
+    vaults = [ "4Vault" "4V2" ];
   };
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
