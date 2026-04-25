@@ -9,6 +9,7 @@
 in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
+    ../../home-modules/node.nix
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
@@ -35,6 +36,13 @@ in {
     # ../../home-modules/terraform.nix
     # ../../home-modules/ssh.nix
   ];
+
+  # Obsidian: headless sync via obsidian-headless CLI
+  services.obsidian = {
+    enable = true;
+    syncMode = "headless";
+    vaults = [ "4Vault" ];
+  };
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
   sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";

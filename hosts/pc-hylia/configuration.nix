@@ -16,8 +16,6 @@ in {
 
   environment.systemPackages = with pkgs; [
     git
-    nodejs
-    yarn
   ];
 
   # Users and packages

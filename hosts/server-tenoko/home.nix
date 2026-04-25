@@ -9,6 +9,7 @@
 in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
+    ../../home-modules/node.nix
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix

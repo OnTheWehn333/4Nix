@@ -9,6 +9,7 @@
 in {
   imports = [
     inputs.sops-nix-darwin.homeManagerModules.sops
+    ../../home-modules/node.nix
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
@@ -65,4 +66,10 @@ in {
   ];
 
   home.stateVersion = "25.11";
+
+  # Obsidian: desktop app (Darwin default, syncMode = "gui")
+  services.obsidian = {
+    enable = true;
+    vaults = [ "4Vault" ];
+  };
 }

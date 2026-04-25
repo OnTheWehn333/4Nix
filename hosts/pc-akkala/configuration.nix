@@ -57,8 +57,6 @@ in {
   environment.systemPackages = with pkgs; [
     vim
     git
-    nodejs
-    yarn
     rsync
   ];
 
