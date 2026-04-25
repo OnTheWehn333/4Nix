@@ -27,8 +27,9 @@
     };
 
     plugin = [
-      "oh-my-opencode"
-      "@franlol/opencode-md-table-formatter"
+      "oh-my-opencode@3.17.4"
+      # "superpowers@git+https://github.com/obra/superpowers.git#v5.0.7"
+      "@franlol/opencode-md-table-formatter@0.0.6"
     ];
 
     provider = {
