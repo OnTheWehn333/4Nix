@@ -16,6 +16,7 @@ in {
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
     ../../home-modules/portal.nix
+    ../../home-modules/nix.nix
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix

@@ -16,6 +16,7 @@ in {
     ../../home-modules/oh-my-posh.nix
     ../../home-modules/tmux.nix
     ../../home-modules/portal.nix
+    ../../home-modules/nix.nix
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
@@ -32,9 +33,9 @@ in {
     ../../home-modules/clipboard.nix
     ../../home-modules/obsidian.nix
     ../../home-modules/pi.nix
-    # ../../home-modules/azure.nix
+    ../../home-modules/azure.nix
+    ../../home-modules/terraform.nix
     # ../../home-modules/kubernetes.nix
-    # ../../home-modules/terraform.nix
     # ../../home-modules/ssh.nix
   ];
 
