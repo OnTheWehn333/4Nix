@@ -18,6 +18,8 @@
       set-option -sa terminal-features ',xterm-256color:RGB'
       set-option -sa terminal-features ',xterm-ghostty:RGB'
       set-option -g focus-events on
+      set -g extended-keys on
+      set -g extended-keys-format csi-u
 
       # Use vi-style keys in copy mode and command prompt editing
       setw -g mode-keys vi

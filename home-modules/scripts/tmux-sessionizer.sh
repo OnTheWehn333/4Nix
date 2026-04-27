@@ -15,6 +15,9 @@ else
         {
             printf "%s\n" "${static_dirs[@]}"
             find "$HOME/projects" -mindepth 1 -maxdepth 1 -type d
+            if [[ -d "$HOME/ObsidianVaults" ]]; then
+                find "$HOME/ObsidianVaults" -mindepth 1 -maxdepth 1 -type d
+            fi
         } | fzf
     )
 fi

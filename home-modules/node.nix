@@ -19,6 +19,12 @@ in {
       default = "22";
       description = "Default Node.js version for interactive use and global npm packages";
     };
+
+    npmGlobalPrefix = lib.mkOption {
+      type = lib.types.str;
+      default = "${config.home.homeDirectory}/.local/share/npm";
+      description = "User-writable location for npm global packages";
+    };
   };
 
   config = {
@@ -27,14 +33,19 @@ in {
       # These work with any nodejs version since they're standalone CLI tools
       yarn
 
-      # Add global tools here as needed, e.g.:
-      # nodePackages.typescript
-      # nodePackages.prettier
-      # nodePackages.eslint
-
       # Default nodejs version for interactive use (node, npm, npx)
       # Modules can still bring their own nodejs version when needed
       defaultNodejs
     ];
+
+    home.sessionPath = [
+      "${config.node.npmGlobalPrefix}/bin"
+    ];
+
+    home.file.".npmrc".text = ''
+      prefix=${config.node.npmGlobalPrefix}
+      fund=false
+      audit=false
+    '';
   };
 }

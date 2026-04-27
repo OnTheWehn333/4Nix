@@ -31,6 +31,7 @@ in {
     ../../home-modules/sops.nix
     ../../home-modules/clipboard.nix
     ../../home-modules/obsidian.nix
+    ../../home-modules/pi.nix
     # ../../home-modules/azure.nix
     # ../../home-modules/kubernetes.nix
     # ../../home-modules/terraform.nix
@@ -71,6 +72,8 @@ in {
     neofetch
     rsync
   ];
+
+  custom.pi.enable = true;
 
   home.stateVersion = "25.11";
 }

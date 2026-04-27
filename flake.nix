@@ -50,6 +50,18 @@
       url = "github:sudosubin/nix-skills";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # agent-skills-nix: Declarative agent skills management
+    agent-skills-nix = {
+      url = "github:Kyure-A/agent-skills-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # kepano/obsidian-skills: Skills for Obsidian
+    kepano-obsidian-skills = {
+      url = "github:kepano/obsidian-skills";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

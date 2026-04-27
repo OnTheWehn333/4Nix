@@ -37,6 +37,7 @@ in {
     ../../home-modules/ssh.nix
     ../../home-modules/obsidian.nix
     ../../home-modules/akkala-connect.nix
+    ../../home-modules/pi.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
@@ -62,8 +63,9 @@ in {
     tree
     vim
     neofetch
-    # Other packages specific to this machine
   ];
+
+  custom.pi.enable = true;
 
   home.stateVersion = "25.11";
 
