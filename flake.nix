@@ -138,6 +138,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         ./hosts/pc-akkala/configuration.nix
+        ./modules/obsidian-headless.nix
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;

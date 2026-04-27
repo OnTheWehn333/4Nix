@@ -38,11 +38,11 @@ in {
     # ../../home-modules/ssh.nix
   ];
 
-  # Obsidian: headless sync via obsidian-headless CLI
+  # Obsidian: headless sync via NixOS system services.
   services.obsidian = {
     enable = true;
     syncMode = "headless";
-    vaults = [ "4Vault" "4V2" ];
+    vaults = ["4Vault" "4V2"];
   };
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
