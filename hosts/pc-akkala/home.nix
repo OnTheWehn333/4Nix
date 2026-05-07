@@ -73,7 +73,15 @@ in {
     rsync
   ];
 
-  custom.pi.enable = true;
+  custom.pi = {
+    enable = true;
+    packages = [
+      "npm:pi-mono-auto-fix"
+      "npm:pi-mono-btw"
+      "npm:pi-mono-context-guard"
+      "npm:pi-mono-simplify"
+    ];
+  };
 
   home.stateVersion = "25.11";
 }

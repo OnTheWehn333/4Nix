@@ -6,6 +6,10 @@
   ...
 }: let
   cfg = config.custom.pi;
+
+  piSettings = cfg.settings // {
+    packages = cfg.packages;
+  };
 in {
   # Import agent-skills-nix at module level so its options are available
   imports = [
@@ -14,6 +18,18 @@ in {
 
   options.custom.pi = {
     enable = lib.mkEnableOption "Pi coding agent - AI coding CLI";
+
+    packages = lib.mkOption {
+      type = lib.types.listOf lib.types.anything;
+      default = [];
+      description = "Pi packages to load from ~/.pi/agent/settings.json.";
+    };
+
+    settings = lib.mkOption {
+      type = lib.types.attrs;
+      default = {};
+      description = "Additional Pi settings written to ~/.pi/agent/settings.json.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -40,6 +56,8 @@ in {
         structure = "symlink-tree";
       };
     };
+
+    home.file.".pi/agent/settings.json".text = lib.generators.toJSON {} piSettings;
 
     home.activation.checkPiAvailable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if ! command -v pi &>/dev/null; then

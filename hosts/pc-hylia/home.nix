@@ -65,13 +65,23 @@ in {
     neofetch
   ];
 
-  custom.pi.enable = true;
+  custom.pi = {
+    enable = true;
+    packages = [
+      "npm:pi-mono-ask-user-question"
+      "npm:pi-mono-auto-fix"
+      "npm:pi-mono-btw"
+      "npm:pi-mono-context-guard"
+      "npm:pi-mono-simplify"
+      "npm:pi-markdown-preview"
+    ];
+  };
 
   home.stateVersion = "25.11";
 
   # Obsidian: desktop app (Darwin default, syncMode = "gui")
   services.obsidian = {
     enable = true;
-    vaults = [ "4Vault" "4V2" ];
+    vaults = ["4Vault" "4V2"];
   };
 }
