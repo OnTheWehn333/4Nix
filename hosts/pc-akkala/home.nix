@@ -77,10 +77,12 @@ in {
   custom.pi = {
     enable = true;
     packages = [
+      "npm:pi-mono-ask-user-question"
       "npm:pi-mono-auto-fix"
       "npm:pi-mono-btw"
       "npm:pi-mono-context-guard"
       "npm:pi-mono-simplify"
+      "npm:pi-markdown-preview"
     ];
   };
 
