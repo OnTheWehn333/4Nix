@@ -5,6 +5,7 @@
   ...
 }: {
   home.file.".config/git/ignore".text = ''
+    .DS_Store
     .sisyphus/
     .opencode/
     AGENTS.md
