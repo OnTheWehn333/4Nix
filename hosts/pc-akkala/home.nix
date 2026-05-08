@@ -33,6 +33,7 @@ in {
     ../../home-modules/clipboard.nix
     ../../home-modules/obsidian.nix
     ../../home-modules/pi.nix
+    ../../home-modules/agent-runner.nix
     ../../home-modules/azure.nix
     ../../home-modules/terraform.nix
     ../../home-modules/kubernetes.nix
@@ -74,6 +75,8 @@ in {
     rsync
   ];
 
+  custom.agent-runner.enable = true;
+
   custom.pi = {
     enable = true;
     packages = [
@@ -82,7 +85,6 @@ in {
       "npm:pi-mono-btw"
       "npm:pi-mono-context-guard"
       "npm:pi-mono-simplify"
-      "npm:pi-markdown-preview"
     ];
   };
 

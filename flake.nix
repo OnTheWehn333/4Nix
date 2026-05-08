@@ -62,6 +62,12 @@
       url = "github:kepano/obsidian-skills";
       flake = false;
     };
+
+    # agent-runner: private Pi package for isolated workflow-scoped agent runs
+    agent-runner = {
+      url = "git+ssh://git@github.com/OnTheWehn333/agent-runner.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {

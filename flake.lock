@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "agent-runner": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778260141,
+        "narHash": "sha256-YZrXMHKKj4ToGu2Sj8sDYKiCv2bZgRfC1gjrlyr8ilI=",
+        "ref": "refs/heads/master",
+        "rev": "5fcf9e7d7f524b65091e68f6be10b123035c3540",
+        "revCount": 2,
+        "type": "git",
+        "url": "ssh://git@github.com/OnTheWehn333/agent-runner.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/OnTheWehn333/agent-runner.git"
+      }
+    },
     "agent-skills-nix": {
       "inputs": {
         "home-manager": "home-manager",
@@ -229,6 +249,7 @@
     },
     "root": {
       "inputs": {
+        "agent-runner": "agent-runner",
         "agent-skills-nix": "agent-skills-nix",
         "home-manager": "home-manager_2",
         "home-manager-darwin": "home-manager-darwin",

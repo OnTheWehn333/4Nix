@@ -39,6 +39,7 @@ in {
     ../../home-modules/obsidian.nix
     ../../home-modules/akkala-connect.nix
     ../../home-modules/pi.nix
+    ../../home-modules/agent-runner.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;
@@ -65,6 +66,8 @@ in {
     vim
     neofetch
   ];
+
+  custom.agent-runner.enable = true;
 
   custom.pi = {
     enable = true;
