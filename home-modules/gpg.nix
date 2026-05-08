@@ -3,7 +3,12 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  pinentryPackage =
+    if pkgs.stdenv.isDarwin
+    then pkgs.pinentry_mac
+    else pkgs.pinentry-tty;
+in {
   home.packages = with pkgs; [
     gnupg
     gpg-tui
@@ -20,7 +25,10 @@
     enableBashIntegration = true;
     enableNushellIntegration = true;
     enableZshIntegration = true;
-    pinentry.package = pkgs.pinentry-tty;
+    # Avoid terminal/TUI pinentry on macOS and avoid keyboard grabbing, which can
+    # make SSH/GPG prompts look like they are hanging inside TUIs or agent runs.
+    grabKeyboardAndMouse = false;
+    pinentry.package = pinentryPackage;
     extraConfig = ''
       allow-loopback-pinentry
     '';
