@@ -1,6 +1,10 @@
+nix shell nixpkgs#nh
+
 sudo darwin-rebuild switch --flake .#pc-hylia
+nh darwin switch . -H pc-hylia
 sudo nixos-rebuild switch --flake .#server-tenoko
 sudo nixos-rebuild switch --flake .#pc-akkala
+nh os switch . -H pc-akkala
 
 #1Password
 eval $(op signin)

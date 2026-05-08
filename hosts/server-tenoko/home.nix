@@ -17,6 +17,7 @@ in {
     ../../home-modules/tmux.nix
     ../../home-modules/portal.nix
     ../../home-modules/nix.nix
+    ../../home-modules/nh.nix
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
