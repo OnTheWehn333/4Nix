@@ -33,7 +33,7 @@ in {
   # Set your time zone
   time.timeZone = "America/Chicago";
 
-  services.openssh.enable = true;
+  services.openssh.enable = false;
   services.tailscale.enable = true;
   systemd.services.tailscaled.after = ["network-online.target"];
   systemd.services.tailscaled.wants = ["network-online.target"];
@@ -41,10 +41,8 @@ in {
     "-${pkgs.iproute2}/bin/ip link delete tailscale0"
   ];
 
-  users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
-    sshHostKeys.pc-hylia
-    sshHostKeys.server-tenoko
-  ];
+  # SSH server is handled by Windows for this WSL host. Home Manager still
+  # configures the SSH client for outbound connections and Git.
 
   # Enable nix-ld for dynamic binary compatibility (LSP servers, etc.)
   programs.nix-ld.enable = true;

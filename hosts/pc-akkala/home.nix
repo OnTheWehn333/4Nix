@@ -37,7 +37,7 @@ in {
     ../../home-modules/azure.nix
     ../../home-modules/terraform.nix
     ../../home-modules/kubernetes.nix
-    # ../../home-modules/ssh.nix
+    ../../home-modules/ssh.nix
   ];
 
   # Obsidian: headless sync via NixOS system services.
