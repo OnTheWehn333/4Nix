@@ -35,7 +35,7 @@ in {
     ../../home-modules/pi.nix
     ../../home-modules/azure.nix
     ../../home-modules/terraform.nix
-    # ../../home-modules/kubernetes.nix
+    ../../home-modules/kubernetes.nix
     # ../../home-modules/ssh.nix
   ];
 
