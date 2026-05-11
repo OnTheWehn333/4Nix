@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1778260141,
-        "narHash": "sha256-YZrXMHKKj4ToGu2Sj8sDYKiCv2bZgRfC1gjrlyr8ilI=",
+        "lastModified": 1778536324,
+        "narHash": "sha256-yGnCjRwEFrS5VbCO5D6YTGn0aO0poO/uSm/QnSP7nsc=",
         "ref": "refs/heads/master",
-        "rev": "5fcf9e7d7f524b65091e68f6be10b123035c3540",
-        "revCount": 2,
+        "rev": "aaeb4dca5cef2beeeb9430a8dbf4d055bbf7fd3a",
+        "revCount": 5,
         "type": "git",
         "url": "ssh://git@github.com/OnTheWehn333/agent-runner.git"
       },
