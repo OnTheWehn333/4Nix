@@ -46,6 +46,15 @@ in {
       description = "List of vault folder names to manage under baseDir.";
     };
 
+    syncFileTypes = lib.mkOption {
+      type = lib.types.listOf (lib.types.enum ["image" "audio" "video" "pdf" "unsupported"]);
+      default = ["image" "audio" "video" "pdf"];
+      description = ''
+        Obsidian Headless file types to sync. Include `unsupported` to match
+        Obsidian's "Sync all file types" behavior for files like `.html`.
+      '';
+    };
+
     vaultPasswords = lib.mkOption {
       type = lib.types.attrsOf (lib.types.nullOr lib.types.str);
       default = {};

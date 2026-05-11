@@ -43,9 +43,11 @@
 
   mkVaultService = userName: vaultName:
     let
+      obsidian = hmUsers.${userName}.services.obsidian;
       homeDirectory = userHome userName;
       npmPrefix = npmGlobalPrefix userName;
       path = vaultPath userName vaultName;
+      syncFileTypes = lib.concatStringsSep "," obsidian.syncFileTypes;
     in {
       description = "Obsidian Headless Sync (${vaultName})";
       after = ["network-online.target" "home-manager-${userName}.service"];
@@ -57,6 +59,7 @@
         User = userName;
         Group = userGroup userName;
         WorkingDirectory = path;
+        ExecStartPre = "${npmPrefix}/bin/ob sync-config --path ${path} --file-types ${syncFileTypes}";
         ExecStart = "${npmPrefix}/bin/ob sync --continuous --path ${path}";
         Restart = "on-failure";
         RestartSec = "5s";

@@ -46,6 +46,7 @@ in {
     enable = true;
     syncMode = "headless";
     vaults = ["4Vault" "4V2"];
+    syncFileTypes = ["image" "audio" "video" "pdf" "unsupported"];
   };
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
