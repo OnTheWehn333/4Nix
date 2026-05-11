@@ -37,6 +37,11 @@
       set -g status-right '%a %Y-%m-%d %H:%M'
       set -g status-right-length 20
 
+      # Tokyo Night: expose the last/recent-window marker as a user option so
+      # hooks can swap the placeholder without rewriting the full status format.
+      set -g @custom-tmux-last-window-icon '●'
+      run-shell 'tmux set -g window-status-format "$(tmux show -gqv window-status-format | sed "s/󰁯/##{@custom-tmux-last-window-icon}/g")"'
+
       # Enable OSC 52 clipboard passthrough
       set -g set-clipboard external
       set -g allow-passthrough all
@@ -79,7 +84,11 @@
       {
         plugin = tokyo-night-tmux;
         extraConfig = ''
-          set -g @theme_variation 'night'
+          set -g @tokyo-night-tmux_theme 'night'
+
+          # Use plain window numbers instead of segmented digit glyphs, which
+          # are poorly supported by many terminal fonts.
+          set -g @tokyo-night-tmux_window_id_style 'none'
         '';
       }
     ];

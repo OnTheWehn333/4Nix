@@ -50,10 +50,11 @@ hosts/
 | Feature | pc-hylia | pc-akkala | server-tenoko |
 |---------|----------|-----------|---------------|
 | Platform | nix-darwin | NixOS-WSL | NixOS |
-| Shell | zsh (native) | (default) | bash → nushell (auto-exec) |
-| Extra modules | ghostty, tunnel9, atac, scrcpy, android-tools, agenix, chafa | — | — |
-| opencode | `custom.opencode.useLatest = true` | `programs.opencode.enable = true` | `programs.opencode.enable = true` |
-| Services | SSH | — | tak-server (Docker), SSH |
+| Shell | zsh (native) | zsh user shell | nushell user shell + bash auto-exec to `nu` |
+| Notable extra HM imports | ghostty, tunnel9, atac, scrcpy, android-tools, agenix, chafa, akkala-connect, agent-runner | tunnel9, atac, scrcpy, android-tools, agenix, chafa, agent-runner | smaller server set: keysync, lazydocker, sops, clipboard |
+| opencode | imports `opencode.nix` | imports `opencode.nix` | not imported currently |
+| Obsidian | GUI app/sync mode | headless sync via NixOS system module | not configured currently |
+| Services/system modules | SSH, Tailscale | WSL, Tailscale, Docker Desktop integration, obsidian-headless module | SSH, Tailscale, tak-server module imported but disabled unless enabled |
 
 ## Anti-Patterns
 

@@ -78,7 +78,6 @@ in {
       "npm:pi-mono-btw"
       "npm:pi-mono-context-guard"
       "npm:pi-mono-simplify"
-      "npm:pi-markdown-preview"
     ];
   };
 

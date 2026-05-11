@@ -1,132 +1,124 @@
-# PROJECT KNOWLEDGE BASE
+# 4Nix Agent Map
 
-**Generated:** 2026-04-12 America/Chicago
-**Commit:** 557d0dc
-**Branch:** master
+This repo is Noah's personal Nix configuration: NixOS + nix-darwin + WSL, Home Manager, sops-nix secrets, overlays, and custom tooling.
 
-NixOS + nix-darwin + WSL flake with Home Manager. Three hosts, sops-nix secrets, and a custom Go `keysync` tool for GPG subkey sync.
+The durable AI knowledge layer for this repo lives in the Nix workflow:
 
-## Structure
-
-```
-4Nix/
-├── flake.nix              # Entry: 6 outputs (3 hosts x normal/bootstrap)
-├── hosts/                 # Host identity + shared key metadata
-├── home-modules/          # Reusable HM modules (one tool per file)
-├── modules/               # NixOS-only services
-├── overlays/              # unstable-packages + modifications overlays
-├── secrets/               # sops-encrypted host/shared secrets
-└── tools/keysync/         # Go CLI for GPG subkey backup/restore
+```text
+~/ObsidianVaults/4V2/Workflows/Nix/4Nix/4Nix.md
 ```
 
-## Hierarchy
+Use this file as the repo-local map and safety contract. Use the workflow note for richer architecture/convention memory when available. The live repo always wins when it disagrees with workflow notes.
 
-- `hosts/AGENTS.md` for host-level imports, bootstrap flow, and platform divergence.
-- `hosts/shared/AGENTS.md` for plain-attrset data rules (no module logic).
-- `home-modules/AGENTS.md` for HM module patterns and anti-patterns.
-- `home-modules/scripts/AGENTS.md` for shell-wrapper boundaries and Nix script integration.
-- `tools/keysync/AGENTS.md` for Go CLI boundaries and Nix bridge constraints.
-- `tools/keysync/internal/AGENTS.md` for internal package ownership rules.
-- `secrets/AGENTS.md` for encrypted secret lifecycle and `.sops.yaml` coupling.
+## Read order
 
-## Where To Look
+1. Read this file first.
+2. If available and the task needs architecture context, read `~/ObsidianVaults/4V2/Workflows/Nix/4Nix/CONTEXT.md` and `~/ObsidianVaults/4V2/Workflows/Nix/4Nix/4Nix.md`.
+3. Route to the right repo area using the table below.
+4. Read the nearest nested `AGENTS.md` before editing inside that area.
+5. Read targeted files and nearby examples before proposing changes.
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Add user tool | `home-modules/{tool}.nix` | Import in host `home.nix` |
-| Add system service | `modules/` | Import in `flake.nix` (NixOS only) |
-| Add host package | `hosts/{host}/home.nix` | Guard platform-only packages with `lib.optionals` |
-| Add/edit secret | `secrets/{host}/secrets.yaml` | Update `.sops.yaml` rules and host key mapping |
-| Share host constants | `hosts/shared/*.nix` | Plain attrsets only |
-| Change keysync behavior | `tools/keysync/internal/*` | Keep adapters separated from orchestration |
+## Map → Rooms → Tools
 
-## Commands
+### Map
+
+- `AGENTS.md` — repo-local map, routing, and safety rules.
+- `CLAUDE.md` — Claude-specific entry point; should defer to `AGENTS.md`.
+- Workflow note — durable AI knowledge for architecture and recurring conventions.
+
+### Rooms
+
+| Room | Purpose | Local context |
+| --- | --- | --- |
+| `hosts/` | Host identity, platform divergence, imports, bootstrap flow. | `hosts/AGENTS.md` |
+| `hosts/shared/` | Plain shared host data: GPG fingerprints/keygrips and SSH public keys. | `hosts/shared/AGENTS.md` |
+| `home-modules/` | Reusable Home Manager modules, usually one tool per file. | `home-modules/AGENTS.md` |
+| `home-modules/scripts/` | Shell sources wrapped by Home Manager modules. | `home-modules/scripts/AGENTS.md` |
+| `modules/` | NixOS-only system modules/services. | `modules/AGENTS.md` |
+| `overlays/` | nixpkgs overlays, unstable package exposure, package/plugin modifications. | `overlays/AGENTS.md` |
+| `secrets/` | sops-encrypted secret payloads only. | `secrets/AGENTS.md` |
+| `tools/keysync/` | Go CLI for GPG subkey backup/restore via 1Password. | `tools/keysync/AGENTS.md` |
+
+### Tools
+
+- `flake.nix` — repo entry point for NixOS, nix-darwin, WSL, Home Manager, overlays, and bootstrap outputs.
+- `.playbook.sh` — Tome/ad hoc command playbook. Noah runs risky/frequent commands from here manually.
+- `keysync.yaml` — root-level keysync config. Do not move it under `tools/keysync/`.
+
+## Routing
+
+| Task | Go to | Read | Output |
+| --- | --- | --- | --- |
+| Add a user tool or Home Manager config | `home-modules/` | `home-modules/AGENTS.md`, nearby modules, target host `home.nix` | Module change + host import if needed |
+| Bundle related user tools | `home-modules/bundles/` | `home-modules/AGENTS.md`, existing bundle | Bundle update |
+| Add host-specific package/config | `hosts/{host}/` | `hosts/AGENTS.md`, target host files | Host-scoped change |
+| Add/change NixOS-only service | `modules/` | `modules/AGENTS.md`, importing host/flake context | System module + import/wiring |
+| Change overlay/package override | `overlays/` | `overlays/AGENTS.md`, `overlays/default.nix` | Overlay change |
+| Add/edit secret wiring | `secrets/` + consumer module/host | `secrets/AGENTS.md`, `.sops.yaml`, consumer file | Encrypted secret path/routing + sops wiring |
+| Change shared keys/constants | `hosts/shared/` | `hosts/shared/AGENTS.md` | Plain attrset update |
+| Change keysync behavior | `tools/keysync/` | `tools/keysync/AGENTS.md`, nested internal context when needed | Go/Nix bridge change |
+| Add reusable command handoff | repo root | `.playbook.sh`, this file | Tome playbook entry |
+
+## Core conventions
+
+- Nix module signature: `{ config, lib, pkgs, ... }:` even when args appear unused.
+- Keep `imports = [ ... ];` near the top of module bodies.
+- Use `home.packages = with pkgs; [ ... ];` for package lists.
+- Do not use `with pkgs;` for single-package `let` bindings.
+- Keep host-specific logic in `hosts/`; `home-modules/` should remain host-agnostic.
+- Guard platform-specific packages with `lib.optionals`.
+- Prefer `config.home.homeDirectory` and `config.xdg.configHome` over hardcoded absolute paths.
+- Keep shared host constants in `hosts/shared/*.nix` as plain attrsets, not modules.
+
+## Command policy
+
+Safe checks agents may run after stating intent:
 
 ```bash
-# Required validation gate before commit
-nix --extra-experimental-features "nix-command flakes" flake check
+nix flake show --no-write-lock-file
+nix --extra-experimental-features "nix-command flakes" flake check --no-write-lock-file
+```
 
-# Build & switch per host
-sudo nixos-rebuild switch --flake .#server-tenoko
-sudo nixos-rebuild switch --flake .#pc-akkala
-darwin-rebuild switch --flake .#pc-hylia
+Manual-only by default; put these in `.playbook.sh` for Noah to run:
 
-# Bootstrap (first-time key restore path)
-sudo nixos-rebuild switch --flake .#server-tenoko-bootstrap
-sudo nixos-rebuild switch --flake .#pc-akkala-bootstrap
-darwin-rebuild switch --flake .#pc-hylia-bootstrap
+- `nh` switch/build/test/boot commands when used as system/profile operations.
+- `nixos-rebuild`, `darwin-rebuild`, `home-manager switch`, or any activation/switch command.
+- Secrets, key restore, 1Password, or sops commands that may expose or mutate sensitive material.
+- Global/system installs outside Nix.
 
-# Flake management
-nix flake update
-nix flake show
-nix flake lock --update-input nixpkgs
+Noah handles git commits and pushes manually. Agents should provide a change summary instead of committing.
 
-# Secrets
-sops secrets/pc-hylia/secrets.yaml
+## Playbook policy
 
-# Keysync (run inside tools/keysync)
+- `.playbook.sh` is a Tome playbook, not a conventional script entrypoint.
+- Keep commands line-oriented and easy to send from Tome.
+- Use comments to group commands.
+- Use Tome variables like `$<host>=pc-hylia` and `$<host>` for values Noah may change before running.
+- Prefer `nh` commands for build/test/switch handoffs where appropriate.
+- Keep secrets/key commands as explicit manual handoffs; never include secret values.
+
+## Hard rules
+
+- Never edit `hosts/server-tenoko/hardware-configuration.nix`.
+- Never commit plaintext secrets or decrypted artifacts.
+- Never add secret files/rules without updating `.sops.yaml` key routing.
+- Never hardcode GPG fingerprints/keygrips/public keys in multiple places; use `hosts/shared/*.nix`.
+- Never move `keysync.yaml` under `tools/keysync/`.
+- Never run switch/rebuild/activation or secrets commands directly as an agent.
+- Do not apply work/client repo assumptions here.
+
+## Validation
+
+Before handing off substantial changes, run or suggest:
+
+```bash
+nix --extra-experimental-features "nix-command flakes" flake check --no-write-lock-file
+```
+
+For Go changes in `tools/keysync/`, also consider from `tools/keysync/`:
+
+```bash
 go build ./cmd/keysync/
 go vet ./...
 go test ./...
 ```
-
-## Conventions
-
-- Nix module signature: `{ config, lib, pkgs, ... }:` even when args appear unused.
-- Keep `imports = [ ... ];` at top of module body.
-- Use `with pkgs;` in package lists, not single-package `let` bindings.
-- Keep host logic in `hosts/`; `home-modules/` must remain host-agnostic.
-- Keep secret references path-based (`config.home.homeDirectory` / `config.xdg.configHome`), never hardcoded absolute paths.
-- `keysync.yaml` stays at repository root; do not move it under `tools/keysync/`.
-
-## Anti-Patterns
-
-- **NEVER** edit `hosts/server-tenoko/hardware-configuration.nix`.
-- **NEVER** commit without `nix flake check` passing.
-- **NEVER** hardcode GPG fingerprints; use `hosts/shared/*.nix`.
-- **NEVER** add platform-specific packages without `lib.optionals` guards.
-- **NEVER** commit plaintext secrets; use sops-encrypted files only.
-- **NEVER** add secret files/rules without updating `.sops.yaml` key routing.
-
-## Notes
-
-- `home-modules/opencode-config.nix` and `home-modules/scripts/opencode-config.sh` are the main config-generation hotspot; treat edits as cross-cutting.
-- `keysync.nix` imports `gpg.nix`; this is the only home-module internal dependency.
-- No CI workflow is defined in repo; validation is command-driven.
-
-## Node.js Management
-
-Node.js is managed declaratively via `home-modules/node.nix`:
-
-- **Global npm packages** (yarn, etc.) live in `node.nix` and are installed globally.
-- **Default Node version** is configurable via `node.defaultVersion` option (18/20/22, default: 22).
-- **Per-module Node versions** are allowed—modules can bring their own `nodejs_18`/`nodejs_20`/`nodejs_22` when needed.
-- Do NOT use `nvm`, `fnm`, or `volta`—they conflict with Nix's declarative model.
-
-## AI Skills (nix-skills)
-
-The `nix-skills` overlay provides AI agent skills from skills.sh ecosystem.
-
-**Security considerations** (as of 2026-04-25):
-- nix-skills has **no formal vetting/audit policy** (repo security page: "No security policy detected").
-- Commits are **unsigned**.
-- Upstream auto-updates every 3 hours via GitHub Actions.
-- **480k+ skills** from ~13k GitHub repos are packaged—no manual review.
-
-**Our approach**:
-- Pin to `flake.lock`—we do NOT auto-update to latest.
-- Only run `nix flake update` to intentionally pull new skill revisions after reviewing changes.
-- Treat skills as untrusted; do not run untrusted skills in environments with access to secrets.
-
-**Usage**:
-```nix
-# After adding nix-skills to flake.nix, skills are available at:
-pkgs.skills.<owner>.<repo>.<skill-name>
-
-# Example: kepano's obsidian skills
-pkgs.skills.kepano.obsidian-skills.obsidian-markdown
-```
-
-**Resources**:
-- Repo: https://github.com/sudosubin/nix-skills
-- Security: https://github.com/sudosubin/nix-skills/security

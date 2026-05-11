@@ -20,5 +20,6 @@
       email = "noahwehn@gmail.com";
     };
     settings.pull.rebase = true;
+    settings.rebase.autoStash = true;
   };
 }

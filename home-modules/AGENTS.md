@@ -35,7 +35,7 @@ Reusable Home Manager modules. One tool per file, imported by host `home.nix` fi
 
 - **DO NOT** import host-specific logic — modules must work on both platforms
 - **DO NOT** hardcode paths — use `config.home.homeDirectory` or `config.xdg.configHome`
-- Platform-specific packages MUST use `lib.optionals (!pkgs.stdenv.isDarwin) [...]`
+- Platform-specific packages MUST be guarded with `lib.optionals` / `lib.mkIf` using `pkgs.stdenv.isDarwin` or `pkgs.stdenv.isLinux` as appropriate.
 
 ## Notes
 
@@ -43,5 +43,5 @@ Reusable Home Manager modules. One tool per file, imported by host `home.nix` fi
 - `opencode-config.nix`: ~420 lines — Nix-side model catalog + JSON generation hotspot
 - `scripts/opencode-config.sh`: ~970 lines — primary interactive logic hotspot; see `home-modules/scripts/AGENTS.md`
 - `opencode.nix`: 120 lines — SOPS template rendering + HM enablement (imports opencode-config.nix)
-- `keysync.nix` imports `gpg.nix` — only module with an internal dependency
+- Internal/local imports exist in a few places: `keysync.nix` imports `gpg.nix`, `opencode.nix` imports `opencode-config.nix`, and bundles import related modules.
 - `oh-my-posh.nix`: Dynamically patches built-in theme JSON with Tokyo Night colors

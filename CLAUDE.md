@@ -1,67 +1,31 @@
-# CLAUDE.md
+# 4Nix Claude Entry
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Read `AGENTS.md` first. It is the repo-local map, routing table, and safety contract for this Nix configuration.
 
-## Project Overview
+If the broader Nix workflow is available, use it as the durable AI knowledge layer:
 
-This is a NixOS + nix-darwin flake configuration with Home Manager for managing system configurations across multiple hosts. The flake supports both Linux (NixOS) and macOS (nix-darwin) hosts.
-
-## Architecture
-
-### Host Configuration Structure
-- **flake.nix**: Main flake file defining outputs for each host
-- **hosts/**: Host-specific configurations
-  - `pc-hylia/`: macOS host (aarch64-darwin) using nix-darwin
-  - `server-tenoko/`: NixOS host (x86_64-linux)
-- **home-modules/**: Reusable Home Manager modules
-  - `bundles/`: Collections of related modules (e.g., dev-tools.nix)
-  - Individual module files for specific tools/programs
-
-### Key Hosts
-- **pc-hylia**: macOS host using nix-darwin.lib.darwinSystem
-- **server-tenoko**: NixOS host using nixpkgs.lib.nixosSystem
-
-## Build Commands
-
-Since this is a Nix flake configuration, build commands differ per host:
-
-### For NixOS (server-tenoko)
-```bash
-sudo nixos-rebuild switch --flake .#server-tenoko
+```text
+~/ObsidianVaults/4V2/Workflows/Nix/CLAUDE.md
+~/ObsidianVaults/4V2/Workflows/Nix/4Nix/CONTEXT.md
+~/ObsidianVaults/4V2/Workflows/Nix/4Nix/4Nix.md
 ```
 
-### For macOS (pc-hylia)
+The live repo is the implementation source of truth. Workflow notes provide orientation, but current repo files and nearby patterns win when they disagree.
+
+## Claude-specific operating rules
+
+- Route by `AGENTS.md` before editing.
+- Read the nearest nested `AGENTS.md` for the target folder.
+- Inspect targeted files and nearby examples before proposing changes.
+- Prefer a short plan before broad edits.
+- Keep changes small and reviewable.
+- Run safe checks only after stating intent.
+- Do not run switch/rebuild/activation, secrets, key restore, global install, commit, or push commands.
+- For risky/frequent commands, add or update `.playbook.sh` as a Tome handoff for Noah to run manually.
+
+## Safe checks
+
 ```bash
-darwin-rebuild switch --flake .#pc-hylia
+nix flake show --no-write-lock-file
+nix --extra-experimental-features "nix-command flakes" flake check --no-write-lock-file
 ```
-
-### Development Commands
-```bash
-# Check flake configuration
-nix flake check
-
-# Show flake outputs
-nix flake show
-
-# Update flake inputs
-nix flake update
-```
-
-## Module System
-
-Home Manager modules are organized in `home-modules/` and imported per-host in the respective `home.nix` files. Common patterns:
-
-- Modules are imported using relative paths: `../../home-modules/module.nix`
-- Bundle modules collect related functionality: `bundles/dev-tools.nix`
-- Host-specific packages are defined in each host's `home.nix`
-
-## Configuration Flow
-
-1. **flake.nix** defines the main structure and inputs
-2. **hosts/[hostname]/configuration.nix** handles system-level config
-3. **hosts/[hostname]/home.nix** imports Home Manager modules
-4. **home-modules/** contain reusable user environment configurations
-
-## Helpful Commands
-
-- When needing to check the configuration run this command: nix --extra-experimental-features "nix-command flakes" flake check
