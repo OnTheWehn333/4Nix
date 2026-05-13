@@ -23,6 +23,7 @@ in {
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix
     ../../home-modules/tunnel9.nix
+    ../../home-modules/boring.nix
     ../../home-modules/atac.nix
     ../../home-modules/scrcpy.nix
     ../../home-modules/android-tools.nix
