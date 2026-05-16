@@ -36,13 +36,16 @@ in {
 
         # LSPs & formatters (Nix-provided, bypass Mason on NixOS)
         alejandra
+        vscode-json-languageserver # jsonls
         lua-language-server
+        bash-language-server
         nil
         rust-analyzer
         stylua
         gopls
         terraform-ls
         yamlfmt
+        kube-linter
         kulala-fmt
         netcoredbg
 
