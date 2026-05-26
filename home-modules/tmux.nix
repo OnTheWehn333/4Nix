@@ -1,6 +1,14 @@
-{pkgs, lib, ...}: {
-  # Ghostty terminfo so tmux works when SSH'ing from ghostty
-  home.packages = lib.optionals (!pkgs.stdenv.isDarwin) [pkgs.ghostty.terminfo];
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: {
+  # fzf powers native fuzzy session switching; Ghostty terminfo keeps tmux
+  # working when SSH'ing from ghostty.
+  home.packages = with pkgs;
+    [fzf]
+    ++ lib.optionals (!stdenv.isDarwin) [ghostty.terminfo];
 
   programs.tmux = {
     enable = true;
@@ -49,6 +57,7 @@
       # Key bindings
       bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"
       bind z switch-client -l
+      bind u display-popup -E 'session="$(tmux list-sessions -F "#{session_name}" | fzf --prompt="session> ")" && [ -n "$session" ] && tmux switch-client -t "$session"'
       bind k clear-history
       bind f resize-pane -Z
 
@@ -77,7 +86,7 @@
       {
         plugin = tmux-sessionx;
         extraConfig = ''
-          set -g @sessionx-bind 'u'
+          set -g @sessionx-bind 'U'
           set -g @sessionx-layout 'reverse'
         '';
       }

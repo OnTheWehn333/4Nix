@@ -39,6 +39,7 @@ in {
         vscode-json-languageserver # jsonls
         lua-language-server
         bash-language-server
+        vtsls
         nil
         rust-analyzer
         stylua
