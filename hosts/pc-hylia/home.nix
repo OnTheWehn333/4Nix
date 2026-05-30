@@ -20,6 +20,7 @@ in {
     ../../home-modules/nix.nix
     ../../home-modules/nh.nix
     ../../home-modules/ghostty.nix
+    ../../home-modules/hammerspoon.nix
     ../../home-modules/opencode.nix
     ../../home-modules/zoxide.nix
     ../../home-modules/tmux-sessionizer.nix

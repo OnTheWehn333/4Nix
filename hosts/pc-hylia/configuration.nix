@@ -11,6 +11,7 @@ in {
 
   # Host basics
   networking.hostName = "pc-hylia";
+  system.primaryUser = "noahbalboa66";
 
   nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
 
@@ -25,6 +26,11 @@ in {
 
   services.openssh.enable = true;
   services.tailscale.enable = true;
+
+  homebrew = {
+    enable = true;
+    casks = ["hammerspoon"];
+  };
 
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.server-tenoko
