@@ -12,6 +12,7 @@
 in {
   programs.neovim = {
     enable = true;
+    sideloadInitLua = true;
     viAlias = true;
     vimAlias = true;
     # Core plugins
