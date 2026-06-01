@@ -74,7 +74,7 @@ in {
     tree
     vim
     ranger
-    neofetch
+    fastfetch
     rsync
   ];
 
@@ -91,5 +91,5 @@ in {
     ];
   };
 
-  home.stateVersion = "25.11";
+  home.stateVersion = "26.05";
 }

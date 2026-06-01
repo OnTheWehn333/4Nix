@@ -45,9 +45,9 @@ in {
     tree
     vim
     ranger
-    neofetch
+    fastfetch
     # Other packages specific to this machine
   ];
 
-  home.stateVersion = "25.11";
+  home.stateVersion = "26.05";
 }

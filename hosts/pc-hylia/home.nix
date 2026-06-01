@@ -68,7 +68,7 @@ in {
   home.packages = with pkgs; [
     tree
     vim
-    neofetch
+    fastfetch
   ];
 
   custom.agent-runner.enable = true;
@@ -84,7 +84,7 @@ in {
     ];
   };
 
-  home.stateVersion = "25.11";
+  home.stateVersion = "26.05";
 
   # Obsidian: desktop app (Darwin default, syncMode = "gui")
   services.obsidian = {

@@ -54,5 +54,5 @@ in {
   home-manager.users.noahbalboa66 = import ./home.nix;
 
   # This value determines the NixOS release with which your system is to be compatible
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 }

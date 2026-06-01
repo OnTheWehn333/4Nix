@@ -64,5 +64,5 @@ in {
   wsl.docker-desktop.enable = true;
 
   # This value determines the NixOS release with which your system is to be compatible
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 }
