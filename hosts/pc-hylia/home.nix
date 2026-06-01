@@ -12,6 +12,7 @@ in {
     ../../home-modules/node.nix
     ../../home-modules/pnpm.nix
     ../../home-modules/bundles/dev-tools.nix
+    ../../home-modules/bundles/voxel-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
     ../../home-modules/oh-my-posh.nix
