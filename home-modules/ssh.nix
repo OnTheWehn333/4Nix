@@ -1,21 +1,13 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}: {
+{...}: {
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks."*" = {
+    settings."*" = {
       # Keep connections alive across idle periods / NAT timeouts
-      serverAliveInterval = 60;
-      serverAliveCountMax = 3;
-
-      extraOptions = {
-        AddKeysToAgent = "yes";
-      };
+      ServerAliveInterval = 60;
+      ServerAliveCountMax = 3;
+      AddKeysToAgent = "yes";
     };
   };
 }
