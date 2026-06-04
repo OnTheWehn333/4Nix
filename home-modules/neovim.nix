@@ -34,6 +34,7 @@ in {
         tmux
         go
         postgresql_16
+        tree-sitter
 
         # LSPs & formatters (Nix-provided, bypass Mason on NixOS)
         alejandra
