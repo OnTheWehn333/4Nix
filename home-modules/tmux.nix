@@ -38,6 +38,15 @@
       set-option -g renumber-windows on
       setw -g pane-base-index 1
 
+      # Pane borders: make the active pane easier to spot than Tokyo Night's
+      # default border styling, especially in side-by-side splits.
+      set -g pane-border-style fg=colour238
+      set -g pane-active-border-style fg=#7aa2f7,bold
+      set -g pane-border-lines heavy
+      set -g pane-border-indicators both
+      set -g pane-border-status top
+      set -g pane-border-format " #{?pane_active,#[fg=#7aa2f7,bold],#[fg=colour244]}#{pane_index}: #{pane_current_command} "
+
       bind-key -n C-S-Left swap-window -t -1\; select-window -t -1
       bind-key -n C-S-Right swap-window -t +1\; select-window -t +1
 
@@ -94,6 +103,7 @@
         plugin = tokyo-night-tmux;
         extraConfig = ''
           set -g @tokyo-night-tmux_theme 'night'
+          set -g @tokyo-night-tmux_show_hostname 0
 
           # Use plain window numbers instead of segmented digit glyphs, which
           # are poorly supported by many terminal fonts.
