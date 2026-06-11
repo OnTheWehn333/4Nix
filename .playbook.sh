@@ -16,20 +16,20 @@ nix --extra-experimental-features "nix-command flakes" flake check --no-write-lo
 # ─────────────────────────────────────────────────────────────
 
 # Darwin host
+nh darwin switch . -H pc-hylia
 nh darwin build . -H pc-hylia
 nh darwin test . -H pc-hylia
-nh darwin switch . -H pc-hylia
 
 # WSL / NixOS host
+nh os switch . -H pc-akkala
 nh os build . -H pc-akkala
 nh os test . -H pc-akkala
-nh os switch . -H pc-akkala
 nh os boot . -H pc-akkala
 
 # NixOS server
+nh os switch . -H server-tenoko
 nh os build . -H server-tenoko
 nh os test . -H server-tenoko
-nh os switch . -H server-tenoko
 nh os boot . -H server-tenoko
 
 # Clean user generations

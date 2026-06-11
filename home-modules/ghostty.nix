@@ -1,13 +1,11 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{...}: {
   xdg.configFile."ghostty/config".text = ''
     # Use a widely available TERM for tmux compatibility
     term = xterm-256color
 
-    # background-opacity = 0.9
+    #background-opacity = 0.9
+
+    macos-option-as-alt = true
 
     # Enable clipboard integration for OSC 52
     clipboard-read = allow

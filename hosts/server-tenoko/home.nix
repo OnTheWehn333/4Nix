@@ -10,6 +10,7 @@ in {
   imports = [
     inputs.sops-nix.homeManagerModules.sops
     ../../home-modules/node.nix
+    ../../home-modules/java.nix
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/ranger.nix
     ../../home-modules/nushell.nix
@@ -23,6 +24,7 @@ in {
     ../../home-modules/tmux-sessionizer.nix
     ../../home-modules/keysync.nix
     ../../home-modules/lazydocker.nix
+    ../../home-modules/kubernetes.nix
     ../../home-modules/sops.nix
     ../../home-modules/clipboard.nix
   ];

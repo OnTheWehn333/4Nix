@@ -39,6 +39,12 @@ in {
   services.openssh.enable = true;
   services.tailscale.enable = true;
 
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    defaultNetwork.settings.dns_enabled = true;
+  };
+
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.pc-hylia
     sshHostKeys.pc-akkala

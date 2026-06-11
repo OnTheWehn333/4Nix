@@ -10,6 +10,8 @@ in {
   imports = [
     inputs.sops-nix-darwin.homeManagerModules.sops
     ../../home-modules/node.nix
+    ../../home-modules/java.nix
+    ../../home-modules/xcodes.nix
     ../../home-modules/pnpm.nix
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/bundles/voxel-tools.nix
@@ -39,12 +41,14 @@ in {
     ../../home-modules/clipboard.nix
     ../../home-modules/azure.nix
     ../../home-modules/kubernetes.nix
+    ../../home-modules/colima.nix
     ../../home-modules/terraform.nix
     ../../home-modules/ssh.nix
     ../../home-modules/obsidian.nix
     ../../home-modules/akkala-connect.nix
     ../../home-modules/pi.nix
     ../../home-modules/agent-runner.nix
+    ../../home-modules/stats.nix
   ];
 
   sops.defaultSopsFile = ../../secrets/pc-hylia/secrets.yaml;

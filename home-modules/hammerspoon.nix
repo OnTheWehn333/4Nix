@@ -5,8 +5,6 @@
 }: {
   config = lib.mkIf pkgs.stdenv.isDarwin {
     home.file.".hammerspoon/init.lua".text = ''
-      local hyper = {"cmd", "alt"}
-
       local function centerWindowObject(win, widthRatio, heightRatio)
         if not win then return end
 
@@ -74,6 +72,15 @@
         hs.application.launchOrFocus(appName)
       end
 
+      local function newFinderWindow()
+        hs.osascript.applescript([[
+          tell application "Finder"
+            make new Finder window to home
+            activate
+          end tell
+        ]])
+      end
+
       local function cycleAppWindow(appName)
         local app = hs.application.get(appName)
 
@@ -120,29 +127,40 @@
         windows[nextIndex]:focus()
       end
 
-      hs.hotkey.bind(hyper, "S", function()
-        centerFocusedWindow(0.60, 0.85)
-      end)
+      local hyper = {"cmd", "alt"}
 
-      hs.hotkey.bind(hyper, "U", function()
-        fillFocusedWindow()
-      end)
+      -- hs.hotkey resolves string keys through hs.keycodes.map for the current
+      -- input source.  Rebind on input source changes so these logical Dvorak
+      -- shortcuts work both with:
+      --   - the built-in keyboard using the macOS Dvorak input source
+      --   - the Advantage 360 using hardware Dvorak with macOS QWERTY input
+      local hotkeyDefinitions = {
+        {key = "s", action = function() centerFocusedWindow(0.60, 0.85) end},
+        {key = "u", action = function() fillFocusedWindow() end},
+        {key = "h", action = function() focusApp("Ghostty") end},
+        {key = "f", action = function() newFinderWindow() end},
+        {key = "n", action = function() focusApp("Music") end},
+        {key = "o", action = function() focusApp("Obsidian") end},
+        {key = "t", action = function() cycleAppWindow("Microsoft Edge") end},
+      }
 
-      hs.hotkey.bind(hyper, "H", function()
-        focusApp("Ghostty")
-      end)
+      local activeHotkeys = {}
 
-      hs.hotkey.bind(hyper, "N", function()
-        focusApp("Music")
-      end)
+      local function bindHotkeysForCurrentInputSource()
+        for _, hotkey in ipairs(activeHotkeys) do
+          hotkey:delete()
+        end
 
-      hs.hotkey.bind(hyper, "O", function()
-        focusApp("Obsidian")
-      end)
+        activeHotkeys = {}
 
-      hs.hotkey.bind(hyper, "T", function()
-        cycleAppWindow("Microsoft Edge")
-      end)
+        for _, definition in ipairs(hotkeyDefinitions) do
+          local hotkey = hs.hotkey.bind(hyper, definition.key, definition.action)
+          table.insert(activeHotkeys, hotkey)
+        end
+      end
+
+      hs.keycodes.inputSourceChanged(bindHotkeysForCurrentInputSource)
+      bindHotkeysForCurrentInputSource()
     '';
   };
 }
