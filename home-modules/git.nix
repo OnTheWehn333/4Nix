@@ -18,4 +18,8 @@
     settings.pull.rebase = true;
     settings.rebase.autoStash = true;
   };
+
+  home.packages = with pkgs; [
+    gh
+  ];
 }
