@@ -53,6 +53,12 @@ in {
         kulala-fmt
         netcoredbg
 
+        # Ruby tools
+        ruby
+        rubyPackages.ruby-lsp
+        rubyPackages.debug
+        rubyPackages.rubocop
+
         # JVM tools
         jdk
         jdt-language-server
