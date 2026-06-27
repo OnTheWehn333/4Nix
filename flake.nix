@@ -99,6 +99,17 @@
     };
   in {
     ####################################################
+    ## Reusable 4Nix installer/rescue ISO
+    nixosConfigurations."4nix-installer" = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+        ./hosts/installer/configuration.nix
+      ];
+    };
+
+    ####################################################
     ## NixOS host
     nixosConfigurations.server-tenoko = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
@@ -132,6 +143,41 @@
         }
         ({lib, ...}: {
           home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/server-tenoko/home-bootstrap.nix);
+        })
+      ];
+    };
+
+    ## NixOS host: Incus hypervisor replacement for XCP-ng
+    nixosConfigurations.server-zant = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        ./hosts/server-zant/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
+    ## NixOS bootstrap (minimal HM profile for key restore fallback)
+    nixosConfigurations.server-zant-bootstrap = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        ./hosts/server-zant/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+        ({lib, ...}: {
+          home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/server-zant/home-bootstrap.nix);
         })
       ];
     };
