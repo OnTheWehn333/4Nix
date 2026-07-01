@@ -27,6 +27,15 @@ keys:
       auth:
         fingerprint: "8E4A14F922FCB840F987868279B3ADFEFB6A4C48"
 
+  server-zant:
+    title: "keysync/gpg/server-zant"
+    fingerprint: "8524809DF83182C66E4E38FED9F0FE85CB4CB174"
+    subkeys:
+      encrypt:
+        fingerprint: "6A39C182F69341804CDC1AF55B18ECDE5C57E469"
+      auth:
+        fingerprint: "6CAC906521FFA474C6D0625A2E7E61719C7AED47"
+
   pc-akkala:
     title: "keysync/gpg/pc-akkala"
     fingerprint: "A29F30C3569257C767D841D03F5D99026A037C37"
@@ -48,6 +57,11 @@ hosts:
       - identity.signing
       - server-tenoko.encrypt
       - server-tenoko.auth
+
+  server-zant:
+    keys:
+      - server-zant.encrypt
+      - server-zant.auth
 
   pc-akkala:
     keys:

@@ -1,4 +1,5 @@
 {
+  inputs,
   lib,
   pkgs,
   ...
@@ -82,6 +83,7 @@ in {
     cifs-utils
     curl
     dmidecode
+    inputs.disko.packages.${pkgs.system}.disko
     git
     gnupg
     gptfdisk

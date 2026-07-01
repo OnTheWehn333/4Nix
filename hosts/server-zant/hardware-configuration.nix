@@ -1,7 +1,7 @@
-{lib, ...}: {
-  # Temporary placeholder so the server-zant flake target can evaluate before
-  # the real NixOS install. Replace this file with nixos-generate-config output
-  # from the HP ProLiant DL380p Gen8 during the final install.
+{...}: {
+  # Temporary hardware module so the server-zant flake target can evaluate before
+  # the real NixOS install. Keep disk/filesystem layout in ./disko.nix; merge only
+  # useful hardware-specific settings from nixos-generate-config after first boot.
 
   boot.initrd.availableKernelModules = [
     "hpsa"
@@ -14,8 +14,4 @@
 
   boot.kernelModules = ["kvm-intel"];
 
-  fileSystems."/" = lib.mkDefault {
-    device = "/dev/disk/by-label/nixos";
-    fsType = "ext4";
-  };
 }

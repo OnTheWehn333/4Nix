@@ -1,25 +1,49 @@
 {
-  lib,
+  config,
   pkgs,
   ...
 }: let
   sshHostKeys = import ../shared/ssh-public-keys.nix;
+  serverZantSecretsFile = ../../secrets/server-zant/secrets.yaml;
 in {
   imports = [
     ./hardware-configuration.nix
+    ./incus.nix
   ];
 
   networking.hostName = "server-zant";
   networking.networkmanager.enable = true;
-  networking.nftables.enable = true;
 
   # HP ProLiant DL380p Gen8 currently boots XCP-ng from this local logical volume.
-  # Only use this as an install target after intentionally retiring/wiping XCP-ng.
+  # Only apply the server-zant disko layout when intentionally retiring/wiping XCP-ng.
   boot.loader.grub.enable = true;
-  boot.loader.grub.device = lib.mkDefault "/dev/disk/by-id/wwn-0x600508b1001c1c12bd1ca0c65bb3541c";
   boot.zfs.forceImportRoot = false;
 
   nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
+
+  sops = {
+    defaultSopsFile = serverZantSecretsFile;
+    age.sshKeyPaths = [];
+    gnupg = {
+      home = "/home/noahbalboa66/.gnupg";
+      sshKeyPaths = [];
+    };
+
+    secrets."truenas-incus-api-key" = {};
+
+    templates."truenas-incus-ctl-config" = {
+      owner = "root";
+      group = "root";
+      mode = "0400";
+      content = builtins.toJSON {
+        hosts.truenas = {
+          url = "wss://192.168.1.88:443/api/current";
+          api_key = config.sops.placeholder."truenas-incus-api-key";
+          allow_insecure = true;
+        };
+      };
+    };
+  };
 
   programs.zsh.enable = true;
 
@@ -35,13 +59,6 @@ in {
   services.openssh.enable = true;
   services.tailscale.enable = true;
 
-  virtualisation.incus.enable = true;
-
-  services.openiscsi = {
-    enable = true;
-    name = "iqn.2026-06.dev.4nix:server-zant";
-  };
-
   users.users.noahbalboa66.openssh.authorizedKeys.keys = builtins.filter (key: key != "") [
     sshHostKeys.pc-hylia
     sshHostKeys.pc-akkala
@@ -51,10 +68,7 @@ in {
     curl
     dmidecode
     git
-    jq
-    lvm2
     tmux
-    truenas-incus-ctl
     vim
   ];
 

@@ -38,6 +38,13 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # disko for declarative disk partitioning/formatting during NixOS installs
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix-darwin = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
@@ -75,6 +82,7 @@
     home-manager,
     home-manager-darwin,
     nix-darwin,
+    disko,
     ...
   }: let
     # Get the overlay functions from overlays/default.nix
@@ -103,6 +111,7 @@
     nixosConfigurations."4nix-installer" = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       pkgs = linuxPkgs;
+      specialArgs = {inherit inputs;};
       modules = [
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
         ./hosts/installer/configuration.nix
@@ -152,6 +161,9 @@
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        disko.nixosModules.disko
+        inputs.sops-nix.nixosModules.sops
+        ./hosts/server-zant/disko.nix
         ./hosts/server-zant/configuration.nix
         home-manager.nixosModules.home-manager
         {
@@ -163,24 +175,6 @@
       ];
     };
 
-    ## NixOS bootstrap (minimal HM profile for key restore fallback)
-    nixosConfigurations.server-zant-bootstrap = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      pkgs = linuxPkgs;
-      modules = [
-        ./hosts/server-zant/configuration.nix
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "hm-backup";
-          home-manager.extraSpecialArgs = {inherit inputs;};
-        }
-        ({lib, ...}: {
-          home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/server-zant/home-bootstrap.nix);
-        })
-      ];
-    };
 
     ####################################################
     ## WSL host

@@ -1,4 +1,6 @@
-{pkgs, ...}: {
+{pkgs, ...}: let
+  gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
+in {
   imports = [
     ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/keysync.nix
@@ -10,6 +12,10 @@
   ];
 
   programs.home-manager.enable = true;
+
+  services.gpg-agent.sshKeys = [
+    gpgSshKeygrips.server-zant
+  ];
 
   home.packages = with pkgs; [
     fastfetch
