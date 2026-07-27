@@ -1,12 +1,8 @@
 {
-  config,
-  lib,
   pkgs,
   inputs,
   ...
-}: let
-  sshHostKeys = import ../shared/ssh-public-keys.nix;
-in {
+}: {
   imports = [
     inputs.nixos-wsl.nixosModules.default
   ];

@@ -110,9 +110,10 @@ in {
       {
         plugin = yank;
         extraConfig = ''
-          # Configure yank clipboard target
+          # Configure yank clipboard target and keep copy mode open after yanking.
           set -g @yank_selection 'clipboard'
           set -g @yank_selection_mouse 'clipboard'
+          set -g @yank_action 'copy-pipe-no-clear'
         '';
       }
       {
