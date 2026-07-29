@@ -25,7 +25,7 @@ in {
     defaultSopsFile = serverZantSecretsFile;
     age.sshKeyPaths = [];
     gnupg = {
-      home = "/home/noahbalboa66/.gnupg";
+      home = "/var/lib/sops-nix/gnupg";
       sshKeyPaths = [];
     };
 

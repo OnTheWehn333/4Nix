@@ -33,6 +33,7 @@
       pkgs._1password-cli
       pkgs.coreutils
       pkgs.gnupg
+      pkgs.yq-go
     ];
     text = builtins.readFile ./4nix-preseed-keys.sh;
   };

@@ -2,7 +2,6 @@
   gpgSshKeygrips = import ../shared/gpg-ssh-keygrips.nix;
 in {
   imports = [
-    ../../home-modules/bundles/dev-tools.nix
     ../../home-modules/keysync.nix
     ../../home-modules/nh.nix
     ../../home-modules/nix.nix
