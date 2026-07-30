@@ -75,7 +75,7 @@ The intended Incus pool is:
 ```text
 Incus pool:              truenas
 TrueNAS source:          spirit-spring/server-zant
-TrueNAS portal:          192.168.1.88:3260
+TrueNAS portal:          ID 1 (0.0.0.0:3260)
 Initiator-group comment: server-zant
 Local initiator IQN:     iqn.2026-06.dev.4nix:server-zant
 Root size:               256GiB
@@ -87,9 +87,10 @@ nonempty dataset.
 
 Before running `share iscsi setup --test`, create or verify a dedicated TrueNAS
 iSCSI initiator group whose comment is exactly `server-zant` and whose allowed
-initiator is exactly `iqn.2026-06.dev.4nix:server-zant`. Also verify that the
-existing portal serves `192.168.1.88:3260`. The setup command can mutate
-TrueNAS if the named portal or initiator group is absent.
+initiator is exactly `iqn.2026-06.dev.4nix:server-zant`. Portal ID `1` is the
+existing `0.0.0.0:3260` listener and can serve both old and new targets. The
+setup command can mutate TrueNAS if the named portal or initiator group is
+absent.
 
 After those objects are verified, test the exact selections:
 
@@ -98,7 +99,7 @@ sudo truenas_incus_ctl \
   --config-file /run/secrets/rendered/truenas-incus-ctl-config \
   --config truenas \
   share iscsi setup --test \
-  --portal 192.168.1.88:3260 \
+  --portal 1 \
   --initiator server-zant
 ```
 

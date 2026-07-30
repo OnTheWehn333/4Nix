@@ -4,7 +4,7 @@ locals {
   truenas_source      = "spirit-spring/server-zant"
   truenas_config_name = "truenas"
   truenas_initiator   = "server-zant"
-  truenas_portal      = "192.168.1.88:3260"
+  truenas_portal      = "1"
 }
 
 resource "incus_server" "server_zant" {
