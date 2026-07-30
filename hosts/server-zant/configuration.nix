@@ -37,7 +37,7 @@ in {
       mode = "0400";
       content = builtins.toJSON {
         hosts.truenas = {
-          url = "wss://192.168.1.88/websocket";
+          url = "wss://192.168.1.88/api/current";
           api_key = config.sops.placeholder."truenas-incus-api-key";
           allow_insecure = true;
         };

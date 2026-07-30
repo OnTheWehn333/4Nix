@@ -22,12 +22,20 @@ in {
     flushRuleset = false;
   };
 
-  networking.firewall.trustedInterfaces = [bridgeName];
+  networking.firewall = {
+    trustedInterfaces = [bridgeName];
+    allowedTCPPorts = [8443];
+  };
 
   virtualisation.incus = {
     enable = true;
+    ui.enable = true;
 
     preseed = {
+      config = {
+        "core.https_address" = "0.0.0.0:8443";
+      };
+
       networks = [
         {
           name = bridgeName;
