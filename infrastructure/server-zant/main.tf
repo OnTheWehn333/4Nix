@@ -3,7 +3,7 @@ locals {
   truenas_pool_name   = "truenas"
   truenas_source      = "spirit-spring/server-zant"
   truenas_config_name = "truenas"
-  truenas_initiator   = "server-zant"
+  truenas_initiator   = "2"
   truenas_portal      = "1"
 }
 
