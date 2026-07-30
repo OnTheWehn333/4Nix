@@ -94,6 +94,14 @@
       inputs.nix-skills.overlays.default # AI agent skills (pkgs.skills.<owner>.<repo>.<skill>)
     ];
 
+    vimDefaultEditorModule = {pkgs, ...}: {
+      environment.systemPackages = [pkgs.vim];
+      environment.variables = {
+        EDITOR = "vim";
+        VISUAL = "vim";
+      };
+    };
+
     linuxPkgs = import nixpkgs {
       system = "x86_64-linux";
       config = {allowUnfree = true;};
@@ -113,6 +121,7 @@
       pkgs = linuxPkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        vimDefaultEditorModule
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
         ./hosts/installer/configuration.nix
       ];
@@ -124,6 +133,7 @@
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        vimDefaultEditorModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -141,6 +151,7 @@
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        vimDefaultEditorModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -161,6 +172,7 @@
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        vimDefaultEditorModule
         disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
         ./hosts/server-zant/disko.nix
@@ -183,6 +195,7 @@
       pkgs = linuxPkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        vimDefaultEditorModule
         ./hosts/pc-akkala/configuration.nix
         ./modules/obsidian-headless.nix
         home-manager.nixosModules.home-manager
@@ -201,6 +214,7 @@
       pkgs = linuxPkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        vimDefaultEditorModule
         ./hosts/pc-akkala/configuration.nix
         home-manager.nixosModules.home-manager
         {
@@ -221,6 +235,7 @@
       system = "aarch64-darwin";
       pkgs = darwinPkgs;
       modules = [
+        vimDefaultEditorModule
         (import ./hosts/pc-hylia/configuration.nix)
         home-manager-darwin.darwinModules.home-manager
         {
@@ -238,6 +253,7 @@
       system = "aarch64-darwin";
       pkgs = darwinPkgs;
       modules = [
+        vimDefaultEditorModule
         (import ./hosts/pc-hylia/configuration.nix)
         home-manager-darwin.darwinModules.home-manager
         {

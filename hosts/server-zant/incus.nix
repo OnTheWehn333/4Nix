@@ -12,7 +12,7 @@
   enableTrueNasPool = false;
 
   trueNasPoolName = "truenas";
-  trueNasSource = "192.168.1.88:spirit-spring/incus/4Ubuntu";
+  trueNasSource = "spirit-spring/server-zant";
   trueNasConfigFile = "/run/secrets/rendered/truenas-incus-ctl-config";
   trueNasRootDiskSize = "256GiB";
 
