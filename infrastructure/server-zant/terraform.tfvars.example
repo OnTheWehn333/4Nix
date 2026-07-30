@@ -1,0 +1,3 @@
+# Keep this false until truenas_incus_ctl can query TrueNAS and its iSCSI
+# setup test succeeds.
+enable_truenas_pool = false

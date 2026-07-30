@@ -1,0 +1,21 @@
+# Rename this to backend.tf only after creating a dedicated, versioned state
+# bucket outside the Incus-managed dataset. Supply credentials through
+# AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, never in this file.
+terraform {
+  backend "s3" {
+    bucket       = "opentofu-state"
+    key          = "4nix/server-zant/incus.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
+
+    endpoints = {
+      s3 = "https://TRUENAS-S3-ENDPOINT"
+    }
+
+    use_path_style              = true
+    skip_credentials_validation = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_metadata_api_check     = true
+  }
+}

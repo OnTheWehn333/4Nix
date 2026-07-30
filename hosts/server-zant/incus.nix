@@ -109,10 +109,12 @@ in {
   systemd.services.incus.path = [pkgs.truenas-incus-ctl];
 
   environment.systemPackages = with pkgs; [
-    incus
+    incus-lts
     jq
     lvm2
+    opentofu
     qemu-utils
+    rsync
     truenas-incus-ctl
   ];
 }
