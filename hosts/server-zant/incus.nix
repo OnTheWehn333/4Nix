@@ -1,21 +1,18 @@
 {
+  config,
   lib,
   pkgs,
   ...
 }: let
   bridgeName = "incusbr0";
-  bridgeIpv4Address = "10.100.0.1/24";
-
-  # Keep TrueNAS pool creation disabled for the first install. The installed host
-  # should first prove: boot -> key preseed -> sops secret decrypt -> CLI test.
-  # Then flip this to true and rebuild.
-  enableTrueNasPool = false;
-
-  trueNasPoolName = "truenas";
-  trueNasSource = "spirit-spring/server-zant";
   trueNasConfigFile = "/run/secrets/rendered/truenas-incus-ctl-config";
-  trueNasRootDiskSize = "256GiB";
-
+  trueNasIncusCtl = pkgs.writeShellApplication {
+    name = "truenas_incus_ctl";
+    text = ''
+      exec ${lib.getExe pkgs.truenas-incus-ctl} \
+        --config-file ${lib.escapeShellArg trueNasConfigFile} "$@"
+    '';
+  };
 in {
   networking.nftables = {
     enable = true;
@@ -30,73 +27,6 @@ in {
   virtualisation.incus = {
     enable = true;
     ui.enable = true;
-
-    preseed = {
-      config = {
-        "core.https_address" = "0.0.0.0:8443";
-      };
-
-      networks = [
-        {
-          name = bridgeName;
-          type = "bridge";
-          config = {
-            "ipv4.address" = bridgeIpv4Address;
-            "ipv4.nat" = "true";
-            "ipv6.address" = "none";
-          };
-        }
-      ];
-
-      storage_pools = lib.optionals enableTrueNasPool [
-        {
-          name = trueNasPoolName;
-          driver = "truenas";
-          config = {
-            source = trueNasSource;
-            "truenas.config" = trueNasConfigFile;
-            "truenas.force_reuse" = "false";
-          };
-        }
-      ];
-
-      profiles = [
-        {
-          name = "default";
-          devices = {
-            eth0 = {
-              name = "eth0";
-              network = bridgeName;
-              type = "nic";
-            };
-          } // lib.optionalAttrs enableTrueNasPool {
-            root = {
-              path = "/";
-              pool = trueNasPoolName;
-              size = trueNasRootDiskSize;
-              type = "disk";
-            };
-          };
-        }
-        {
-          name = "4ubuntu-vm";
-          description = "Policy for the imported 4Ubuntu VM";
-          config = {
-            "limits.cpu" = "8";
-            "limits.memory" = "16GiB";
-            "boot.autostart" = "true";
-          };
-          devices = lib.optionalAttrs enableTrueNasPool {
-            root = {
-              path = "/";
-              pool = trueNasPoolName;
-              size = "256GiB";
-              type = "disk";
-            };
-          };
-        }
-      ];
-    };
   };
 
   services.openiscsi = {
@@ -104,9 +34,10 @@ in {
     name = "iqn.2026-06.dev.4nix:server-zant";
   };
 
-  # Incus' TrueNAS storage driver shells out to truenas_incus_ctl. Adding it only
-  # to environment.systemPackages is not enough for the systemd daemon.
-  systemd.services.incus.path = [pkgs.truenas-incus-ctl];
+  # Incus 7.0 passes truenas.config as the helper's named --config profile but
+  # has no pool option for --config-file. This wrapper injects the root-only
+  # rendered file without placing its API key in Incus or OpenTofu state.
+  systemd.services.incus.path = [trueNasIncusCtl];
 
   environment.systemPackages = with pkgs; [
     incus-lts

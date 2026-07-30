@@ -1,8 +1,9 @@
 # server-zant Incus infrastructure
 
-OpenTofu owns Incus API resources on `server-zant`. Nix continues to own the
-host OS, Incus daemon and packages, firewall prerequisites, Open-iSCSI,
-`truenas_incus_ctl`, and the rendered SOPS configuration.
+OpenTofu owns Incus API resources on `server-zant`, including the server API
+listener, networks, profiles, storage pools, and eventual instances. Nix owns
+the host OS, Incus daemon and packages, UI package, firewall prerequisites,
+Open-iSCSI, `truenas_incus_ctl`, and the rendered SOPS configuration.
 
 ## Safety boundaries
 
@@ -30,8 +31,8 @@ tofu fmt -check
 tofu validate
 ```
 
-Before any apply, adopt the network and profiles that already exist from the
-Nix Incus preseed:
+During the one-time ownership transition on the current server, adopt the
+network and profiles that already exist from the former Nix Incus preseed:
 
 ```bash
 tofu import incus_network.incusbr0 incusbr0
@@ -41,38 +42,65 @@ tofu plan
 ```
 
 Review the entire plan. Do not apply if it proposes replacement or deletion.
-After these imports produce an understood plan, remove network/profile API
-object ownership from the Nix preseed in a separate change. Removing preseed
-entries does not delete the existing Incus objects.
+The Nix preseed has been removed after this import handoff; removing it does not
+delete existing Incus objects.
+
+The `incus_server.server_zant` resource requires no import. Its first plan is
+shown as a create operation, but the provider does not create or replace the
+Incus daemon. It adopts the existing server and manages only the explicitly
+configured `core.https_address` setting.
+
+On a genuinely fresh host with no Incus API objects, skip the import commands;
+OpenTofu will create the network and profiles from this configuration.
 
 ## TrueNAS storage gate
 
-The TrueNAS pool is disabled by default. Before enabling it, both of these must
-succeed:
+The TrueNAS pool is disabled by default. First confirm API access and that the
+intended child dataset does not exist:
 
 ```bash
 sudo truenas_incus_ctl \
   --config-file /run/secrets/rendered/truenas-incus-ctl-config \
   --config truenas \
-  dataset ls
+  dataset ls spirit-spring
 
 sudo truenas_incus_ctl \
   --config-file /run/secrets/rendered/truenas-incus-ctl-config \
   --config truenas \
-  share iscsi setup --test
+  dataset ls spirit-spring/server-zant
 ```
 
 The intended Incus pool is:
 
 ```text
-Incus pool:     truenas
-TrueNAS source: spirit-spring/server-zant
-Root size:      256GiB
+Incus pool:              truenas
+TrueNAS source:          spirit-spring/server-zant
+TrueNAS portal:          192.168.1.88:3260
+Initiator-group comment: server-zant
+Local initiator IQN:     iqn.2026-06.dev.4nix:server-zant
+Root size:               256GiB
 ```
 
 Confirm that `spirit-spring/server-zant` does not exist or is empty. Keep
 `truenas.force_reuse=false`; it prevents accidental adoption of an existing
 nonempty dataset.
+
+Before running `share iscsi setup --test`, create or verify a dedicated TrueNAS
+iSCSI initiator group whose comment is exactly `server-zant` and whose allowed
+initiator is exactly `iqn.2026-06.dev.4nix:server-zant`. Also verify that the
+existing portal serves `192.168.1.88:3260`. The setup command can mutate
+TrueNAS if the named portal or initiator group is absent.
+
+After those objects are verified, test the exact selections:
+
+```bash
+sudo truenas_incus_ctl \
+  --config-file /run/secrets/rendered/truenas-incus-ctl-config \
+  --config truenas \
+  share iscsi setup --test \
+  --portal 192.168.1.88:3260 \
+  --initiator server-zant
+```
 
 When the API, iSCSI test, and dataset check all pass, create an untracked
 `terraform.tfvars` containing:
@@ -84,8 +112,10 @@ enable_truenas_pool = true
 Then review `tofu plan` before applying. Enabling the pool also adds the root
 disk device to the `default` profile.
 
-The state contains the path to the rendered TrueNAS configuration, not the API
-key itself.
+OpenTofu and Incus state contain only the config profile name `truenas`, not
+the API key or rendered file path. Nix places a wrapper in the Incus service
+PATH that injects the root-only rendered `--config-file` when the driver invokes
+`truenas_incus_ctl`.
 
 ## Remote state
 

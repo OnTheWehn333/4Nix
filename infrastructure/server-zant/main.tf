@@ -1,8 +1,20 @@
 locals {
-  bridge_name       = "incusbr0"
-  truenas_pool_name = "truenas"
-  truenas_source    = "spirit-spring/server-zant"
-  truenas_config    = "/run/secrets/rendered/truenas-incus-ctl-config"
+  bridge_name         = "incusbr0"
+  truenas_pool_name   = "truenas"
+  truenas_source      = "spirit-spring/server-zant"
+  truenas_config_name = "truenas"
+  truenas_initiator   = "server-zant"
+  truenas_portal      = "192.168.1.88:3260"
+}
+
+resource "incus_server" "server_zant" {
+  config = {
+    "core.https_address" = "0.0.0.0:8443"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "incus_network" "incusbr0" {
@@ -28,8 +40,10 @@ resource "incus_storage_pool" "truenas" {
 
   config = {
     source                = local.truenas_source
-    "truenas.config"      = local.truenas_config
+    "truenas.config"      = local.truenas_config_name
     "truenas.force_reuse" = "false"
+    "truenas.initiator"   = local.truenas_initiator
+    "truenas.portal"      = local.truenas_portal
   }
 
   lifecycle {
