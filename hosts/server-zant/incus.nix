@@ -22,11 +22,15 @@ in {
   networking.firewall = {
     trustedInterfaces = [bridgeName];
     allowedTCPPorts = [8443];
+    allowedUDPPorts = [8211];
   };
 
-  virtualisation.incus = {
-    enable = true;
-    ui.enable = true;
+  virtualisation = {
+    docker.enable = true;
+    incus = {
+      enable = true;
+      ui.enable = true;
+    };
   };
 
   services.openiscsi = {
@@ -43,6 +47,7 @@ in {
   ];
 
   environment.systemPackages = with pkgs; [
+    docker-compose
     incus-lts
     jq
     lvm2
