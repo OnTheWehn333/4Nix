@@ -37,7 +37,10 @@ in {
   # Incus 7.0 passes truenas.config as the helper's named --config profile but
   # has no pool option for --config-file. This wrapper injects the root-only
   # rendered file without placing its API key in Incus or OpenTofu state.
-  systemd.services.incus.path = [trueNasIncusCtl];
+  systemd.services.incus.path = [
+    trueNasIncusCtl
+    config.services.openiscsi.package
+  ];
 
   environment.systemPackages = with pkgs; [
     incus-lts
