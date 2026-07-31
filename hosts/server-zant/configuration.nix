@@ -49,7 +49,7 @@ in {
 
   users.users.noahbalboa66 = {
     isNormalUser = true;
-    extraGroups = ["wheel" "networkmanager" "incus-admin"];
+    extraGroups = ["wheel" "networkmanager" "incus-admin" "docker"];
     packages = [];
     shell = pkgs.zsh;
   };
