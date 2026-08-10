@@ -26,11 +26,16 @@ nh os build . -H pc-akkala
 nh os test . -H pc-akkala
 nh os boot . -H pc-akkala
 
-# NixOS server
+# NixOS servers
 nh os switch . -H server-tenoko
 nh os build . -H server-tenoko
 nh os test . -H server-tenoko
 nh os boot . -H server-tenoko
+
+nh os switch . -H server-zant
+nh os build . -H server-zant
+nh os test . -H server-zant
+nh os boot . -H server-zant
 
 # Clean user generations
 nh clean user --keep 5 --keep-since 14d
@@ -52,6 +57,17 @@ darwin-rebuild switch --flake .#pc-hylia
 sudo nixos-rebuild switch --flake .#server-tenoko-bootstrap
 sudo nixos-rebuild switch --flake .#pc-akkala-bootstrap
 darwin-rebuild switch --flake .#pc-hylia-bootstrap
+
+# ─────────────────────────────────────────────────────────────
+# server-zant Incus client enrollment
+# Run the trust command once, then paste its token into `incus remote add`.
+# Use server-zant's LAN address if Tailscale MagicDNS is unavailable.
+# ─────────────────────────────────────────────────────────────
+
+ssh server-zant 'incus config trust add pc-hylia'
+incus remote add zant https://server-zant:8443
+incus remote switch zant
+incus list
 
 # ─────────────────────────────────────────────────────────────
 # Flake management

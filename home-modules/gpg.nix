@@ -15,9 +15,6 @@ in {
   ];
 
   programs.gpg.enable = true;
-  programs.gpg.settings = {
-    pinentry-mode = "loopback";
-  };
 
   services.gpg-agent = {
     enable = true;
@@ -29,6 +26,9 @@ in {
     # make SSH/GPG prompts look like they are hanging inside TUIs or agent runs.
     grabKeyboardAndMouse = false;
     pinentry.package = pinentryPackage;
+    # Keep loopback available for scripts that explicitly opt into it with
+    # --pinentry-mode loopback, but do not force loopback globally. Interactive
+    # tools like gpg-tui need the normal pinentry path.
     extraConfig = ''
       allow-loopback-pinentry
     '';

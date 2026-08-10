@@ -3,7 +3,28 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  clipboardCopy = pkgs.writeShellApplication {
+    name = "tmux-clipboard-copy";
+    runtimeInputs =
+      [pkgs.tmux]
+      ++ lib.optionals pkgs.stdenv.isLinux [
+        pkgs.wl-clipboard
+        pkgs.xclip
+      ];
+    text = ''
+      if command -v pbcopy >/dev/null 2>&1; then
+        exec pbcopy
+      elif [ -n "''${WAYLAND_DISPLAY:-}" ]; then
+        exec wl-copy
+      elif [ -n "''${DISPLAY:-}" ]; then
+        exec xclip -selection clipboard
+      else
+        exec tmux load-buffer -w -
+      fi
+    '';
+  };
+in {
   # fzf powers native fuzzy session switching; Ghostty terminfo keeps tmux
   # working when SSH'ing from ghostty.
   home.packages = with pkgs;
@@ -59,9 +80,11 @@
       set -g @custom-tmux-last-window-icon '●'
       run-shell 'tmux set -g window-status-format "$(tmux show -gqv window-status-format | sed "s/󰁯/##{@custom-tmux-last-window-icon}/g")"'
 
-      # Enable OSC 52 clipboard passthrough
+      # Prefer a native clipboard tool for large local copies. The wrapper
+      # falls back to tmux OSC 52 only for remote/headless sessions.
       set -g set-clipboard external
       set -g allow-passthrough all
+      set -g @override_copy_command '${clipboardCopy}/bin/tmux-clipboard-copy'
 
       # Key bindings
       bind r source-file ~/.config/tmux/tmux.conf \; display-message "Config reloaded!"

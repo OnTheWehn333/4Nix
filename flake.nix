@@ -27,6 +27,9 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
+    # Declarative, pinned Homebrew installation for macOS
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
     # NixOS-WSL for WSL hosts
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL/main";
@@ -38,6 +41,13 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # disko for declarative disk partitioning/formatting during NixOS installs
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix-darwin = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
@@ -75,6 +85,8 @@
     home-manager,
     home-manager-darwin,
     nix-darwin,
+    nix-homebrew,
+    disko,
     ...
   }: let
     # Get the overlay functions from overlays/default.nix
@@ -85,6 +97,14 @@
       overlays.modifications # uses pkgs.unstable.tmux
       inputs.nix-skills.overlays.default # AI agent skills (pkgs.skills.<owner>.<repo>.<skill>)
     ];
+
+    vimDefaultEditorModule = {pkgs, ...}: {
+      environment.systemPackages = [pkgs.vim];
+      environment.variables = {
+        EDITOR = "vim";
+        VISUAL = "vim";
+      };
+    };
 
     linuxPkgs = import nixpkgs {
       system = "x86_64-linux";
@@ -99,11 +119,25 @@
     };
   in {
     ####################################################
+    ## Reusable 4Nix installer/rescue ISO
+    nixosConfigurations."4nix-installer" = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      specialArgs = {inherit inputs;};
+      modules = [
+        vimDefaultEditorModule
+        "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+        ./hosts/installer/configuration.nix
+      ];
+    };
+
+    ####################################################
     ## NixOS host
     nixosConfigurations.server-tenoko = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        vimDefaultEditorModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -121,6 +155,7 @@
       system = "x86_64-linux";
       pkgs = linuxPkgs;
       modules = [
+        vimDefaultEditorModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -136,6 +171,26 @@
       ];
     };
 
+    ## NixOS host: Incus hypervisor replacement for XCP-ng
+    nixosConfigurations.server-zant = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        vimDefaultEditorModule
+        disko.nixosModules.disko
+        inputs.sops-nix.nixosModules.sops
+        ./hosts/server-zant/disko.nix
+        ./hosts/server-zant/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
     ####################################################
     ## WSL host
     nixosConfigurations.pc-akkala = nixpkgs.lib.nixosSystem {
@@ -143,6 +198,7 @@
       pkgs = linuxPkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        vimDefaultEditorModule
         ./hosts/pc-akkala/configuration.nix
         ./modules/obsidian-headless.nix
         home-manager.nixosModules.home-manager
@@ -161,6 +217,7 @@
       pkgs = linuxPkgs;
       specialArgs = {inherit inputs;};
       modules = [
+        vimDefaultEditorModule
         ./hosts/pc-akkala/configuration.nix
         home-manager.nixosModules.home-manager
         {
@@ -181,6 +238,15 @@
       system = "aarch64-darwin";
       pkgs = darwinPkgs;
       modules = [
+        vimDefaultEditorModule
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            enable = true;
+            user = "noahbalboa66";
+            autoMigrate = true;
+          };
+        }
         (import ./hosts/pc-hylia/configuration.nix)
         home-manager-darwin.darwinModules.home-manager
         {
@@ -198,6 +264,15 @@
       system = "aarch64-darwin";
       pkgs = darwinPkgs;
       modules = [
+        vimDefaultEditorModule
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            enable = true;
+            user = "noahbalboa66";
+            autoMigrate = true;
+          };
+        }
         (import ./hosts/pc-hylia/configuration.nix)
         home-manager-darwin.darwinModules.home-manager
         {

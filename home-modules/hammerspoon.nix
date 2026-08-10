@@ -72,6 +72,25 @@
         hs.application.launchOrFocus(appName)
       end
 
+      local function focusFinderWindow()
+        local app = hs.application.get("Finder")
+
+        if not app then
+          focusApp("Finder")
+          return
+        end
+
+        local windows = orderedVisibleWindows(app)
+
+        if #windows == 0 then
+          focusApp("Finder")
+          return
+        end
+
+        cycleState["Finder"] = nil
+        windows[1]:focus()
+      end
+
       local function newFinderWindow()
         hs.osascript.applescript([[
           tell application "Finder"
@@ -138,7 +157,8 @@
         {key = "s", action = function() centerFocusedWindow(0.60, 0.85) end},
         {key = "u", action = function() fillFocusedWindow() end},
         {key = "h", action = function() focusApp("Ghostty") end},
-        {key = "f", action = function() newFinderWindow() end},
+        {key = "f", action = function() focusFinderWindow() end},
+        {modifiers = {"cmd", "alt", "shift"}, key = "f", action = function() newFinderWindow() end},
         {key = "n", action = function() focusApp("Music") end},
         {key = "o", action = function() focusApp("Obsidian") end},
         {key = "t", action = function() cycleAppWindow("Microsoft Edge") end},
@@ -154,7 +174,7 @@
         activeHotkeys = {}
 
         for _, definition in ipairs(hotkeyDefinitions) do
-          local hotkey = hs.hotkey.bind(hyper, definition.key, definition.action)
+          local hotkey = hs.hotkey.bind(definition.modifiers or hyper, definition.key, definition.action)
           table.insert(activeHotkeys, hotkey)
         end
       end

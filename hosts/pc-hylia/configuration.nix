@@ -29,6 +29,10 @@ in {
 
   homebrew = {
     enable = true;
+    brews = [
+      "incus"
+      "spice-gtk"
+    ];
     casks = ["hammerspoon"];
   };
 
