@@ -50,11 +50,7 @@ in {
         "obsidian/defuddle"
       ];
 
-      targets.pi = {
-        enable = true;
-        dest = "\${HOME}/.pi/agent/skills";
-        structure = "symlink-tree";
-      };
+      targets.pi.enable = true;
     };
 
     home.file.".pi/agent/settings.json".text = lib.generators.toJSON {} piSettings;
