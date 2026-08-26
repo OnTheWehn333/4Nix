@@ -42,13 +42,20 @@ in {
     name = "iqn.2026-06.dev.4nix:server-zant";
   };
 
-  # Incus 7.0 passes truenas.config as the helper's named --config profile but
-  # has no pool option for --config-file. This wrapper injects the root-only
-  # rendered file without placing its API key in Incus or OpenTofu state.
-  systemd.services.incus.path = [
-    trueNasIncusCtl
-    config.services.openiscsi.package
-  ];
+  # Start systemd's iSCSI socket before Incus tooling can auto-spawn an
+  # unmanaged iscsid process that claims the same abstract IPC socket.
+  systemd.services.incus = {
+    requires = ["iscsid.socket"];
+    after = ["iscsid.socket"];
+
+    # Incus 7.0 passes truenas.config as the helper's named --config profile but
+    # has no pool option for --config-file. This wrapper injects the root-only
+    # rendered file without placing its API key in Incus or OpenTofu state.
+    path = [
+      trueNasIncusCtl
+      config.services.openiscsi.package
+    ];
+  };
 
   environment.systemPackages = with pkgs; [
     docker-compose
