@@ -19,7 +19,14 @@ in {
   boot.loader.grub.enable = true;
   boot.zfs.forceImportRoot = false;
 
-  nix = {settings = {experimental-features = ["nix-command" "flakes"];};};
+  # Build native aarch64 NixOS images under QEMU binfmt emulation.
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+
+  nix.settings = {
+    experimental-features = ["nix-command" "flakes"];
+    max-jobs = 12;
+    cores = 2;
+  };
 
   sops = {
     defaultSopsFile = serverZantSecretsFile;

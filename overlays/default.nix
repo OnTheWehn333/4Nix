@@ -9,6 +9,7 @@
 
   # Packages you want to override live here 👇
   modifications = final: prev: {
+    obsidian = final.unstable.obsidian;
     opencode = final.unstable.opencode;
     azure-cli = final.unstable.azure-cli;
 
