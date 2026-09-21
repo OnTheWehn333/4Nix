@@ -11,6 +11,10 @@ creation_rules:
     pgp: >-
       8524809DF83182C66E4E38FED9F0FE85CB4CB174
 
+  - path_regex: secrets/server-gohdan/.*
+    age: >-
+      age1x5vnrj6kjwta3wcmwxmxdf9662ardzn69ptwfta3vagffg4h9epqakfzph
+
   - path_regex: secrets/pc-akkala/.*
     pgp: >-
       A29F30C3569257C767D841D03F5D99026A037C37

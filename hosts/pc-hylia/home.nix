@@ -9,6 +9,7 @@
 in {
   imports = [
     inputs.sops-nix-darwin.homeManagerModules.sops
+    inputs.party-console.homeManagerModules.default
     ../../home-modules/node.nix
     ../../home-modules/java.nix
     ../../home-modules/xcodes.nix
@@ -60,6 +61,20 @@ in {
 
   programs.git.signing.key = gpgSigningKeys.pc-hylia;
 
+  programs.ssh.settings = {
+    "server-gohdan" = {
+      HostName = "10.100.0.10";
+      User = "noahbalboa66";
+      ProxyJump = "server-zant";
+    };
+
+    "server-necluda" = {
+      HostName = "10.100.0.122";
+      User = "noahbalboa66";
+      ProxyJump = "server-zant";
+    };
+  };
+
   custom.oh-my-posh.hostColor = "#7aa2f7"; # Lake Hylia — serene blue waters
 
   programs.zsh = {
@@ -71,10 +86,14 @@ in {
 
   # Other machine-specific home configurations
   home.packages = with pkgs; [
+    fastfetch
+    nixos-rebuild
     tree
     vim
-    fastfetch
   ];
+
+  # nixpkgs marks RetroArch broken on Darwin; pending macOS packaging decision.
+  programs.party-console.enable = false;
 
   custom.agent-runner.enable = true;
 
@@ -87,6 +106,10 @@ in {
       "npm:pi-mono-context-guard"
       "npm:pi-mono-simplify"
     ];
+    settings = {
+      defaultProvider = "openai-codex";
+      defaultModel = "gpt-6-astra";
+    };
   };
 
   home.stateVersion = "26.05";

@@ -4,7 +4,11 @@
   pkgs,
   ...
 }: let
-  flakePath = "${config.home.homeDirectory}/projects/4Nix";
+  projectRoot =
+    if pkgs.stdenv.isDarwin
+    then "Projects"
+    else "projects";
+  flakePath = "${config.home.homeDirectory}/${projectRoot}/4Nix";
 in {
   programs.nh = {
     enable = true;

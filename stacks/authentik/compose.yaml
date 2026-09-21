@@ -1,0 +1,61 @@
+services:
+  postgresql:
+    image: docker.io/library/postgres:16-alpine@sha256:cf78e76683b9ca8c5733cbbdce6c9262b45b6767934dd0a95e671f9a0fc20685
+    restart: unless-stopped
+    env_file:
+      - "${AUTHENTIK_POSTGRES_ENV_FILE:?AUTHENTIK_POSTGRES_ENV_FILE is required}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d authentik -U authentik"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - "${AUTHENTIK_STATE_DIRECTORY:?AUTHENTIK_STATE_DIRECTORY is required}/database:/var/lib/postgresql/data"
+    networks:
+      - backend
+    logging: &default-logging
+      driver: local
+      options:
+        max-file: "3"
+        max-size: 10m
+
+  server:
+    image: &authentik-image ghcr.io/goauthentik/server:2025.12.6@sha256:d4c1750e26bb7faa4d09e23305d75b54957ce4b81cee8e3acf4cc4bb8635d705
+    command: server
+    restart: unless-stopped
+    env_file:
+      - "${AUTHENTIK_ENV_FILE:?AUTHENTIK_ENV_FILE is required}"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    ports:
+      - "${AUTHENTIK_LISTEN_ADDRESS:?AUTHENTIK_LISTEN_ADDRESS is required}:${AUTHENTIK_HTTP_PORT:?AUTHENTIK_HTTP_PORT is required}:9000"
+    volumes:
+      - "${AUTHENTIK_STATE_DIRECTORY}/data:/data"
+    networks:
+      - default
+      - backend
+    logging: *default-logging
+
+  worker:
+    image: *authentik-image
+    command: worker
+    restart: unless-stopped
+    user: root
+    env_file:
+      - "${AUTHENTIK_ENV_FILE:?AUTHENTIK_ENV_FILE is required}"
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - "${AUTHENTIK_STATE_DIRECTORY}/data:/data"
+      - "${AUTHENTIK_STATE_DIRECTORY}/certs:/certs"
+    networks:
+      - default
+      - backend
+    logging: *default-logging
+
+networks:
+  backend:
+    internal: true

@@ -9,6 +9,9 @@
     # Darwin nixpkgs (for nix-darwin + HM on macOS)
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
 
+    # Local development input; replace with a Git URL before remote consumption.
+    party-console.url = "path:/Users/noahbalboa66/Projects/party-console";
+
     # Home Manager for Linux
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -190,6 +193,37 @@
         }
       ];
     };
+
+    ## NixOS Incus VM: identity and access services
+    nixosConfigurations.server-gohdan = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      modules = [
+        vimDefaultEditorModule
+        "${nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
+        inputs.sops-nix.nixosModules.sops
+        ./hosts/server-gohdan/configuration.nix
+        ./modules/authentik.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+          home-manager.extraSpecialArgs = {inherit inputs;};
+        }
+      ];
+    };
+
+    # Incus imports VM images as a metadata archive plus a QCOW2 data file.
+    # Bundle both under stable names for the OpenTofu provisioning handoff.
+    packages.x86_64-linux.server-gohdan-incus-image = let
+      cfg = inputs.self.nixosConfigurations.server-gohdan.config;
+    in
+      linuxPkgs.runCommand "server-gohdan-incus-image" {} ''
+        mkdir -p "$out"
+        ln -s ${cfg.system.build.qemuImage}/nixos.qcow2 "$out/disk.qcow2"
+        ln -s ${cfg.system.build.metadata}/${cfg.image.filePath} "$out/metadata.tar.xz"
+      '';
 
     ####################################################
     ## WSL host

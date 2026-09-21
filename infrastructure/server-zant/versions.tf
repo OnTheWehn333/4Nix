@@ -9,5 +9,8 @@ terraform {
   }
 }
 
-# With no explicit remote, the provider uses the local Incus Unix socket.
-provider "incus" {}
+# Hylia is the infrastructure control workstation. The provider uses the
+# existing TLS-authenticated `zant` remote from ~/.config/incus/config.yml.
+provider "incus" {
+  default_remote = "zant"
+}

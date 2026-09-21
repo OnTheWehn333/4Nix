@@ -16,47 +16,38 @@ Open-iSCSI, `truenas_incus_ctl`, and the rendered SOPS configuration.
 - The `4Ubuntu` instance is intentionally absent from this configuration until
   it has been restored and boot-tested.
 
-## Initial local state
+## Temporary Hylia-local state
 
-The initial backend is OpenTofu's local backend. State is ignored by Git. The
-provider connects to the local Incus Unix socket, so run OpenTofu on
-`server-zant` as a user in `incus-admin`.
+Hylia is the infrastructure control workstation. Its Incus client has a
+TLS-authenticated remote named `zant`, and the OpenTofu provider uses that
+remote rather than Zant's local Unix socket.
 
-Initialize without changing Incus:
+The current state has been copied to Hylia and remains on OpenTofu's local
+backend temporarily. State is ignored by Git. Run routine commands from Hylia:
 
 ```bash
-cd ~/projects/4Nix/infrastructure/server-zant
-tofu init
+cd ~/Projects/4Nix/infrastructure/server-zant
+tofu init -lockfile=readonly
 tofu fmt -check
 tofu validate
-```
-
-During the one-time ownership transition on the current server, adopt the
-network and profiles that already exist from the former Nix Incus preseed:
-
-```bash
-tofu import incus_network.incusbr0 incusbr0
-tofu import incus_profile.default default
-tofu import incus_profile.four_ubuntu_vm 4ubuntu-vm
 tofu plan
 ```
 
-Review the entire plan. Do not apply if it proposes replacement or deletion.
-The Nix preseed has been removed after this import handoff; removing it does not
-delete existing Incus objects.
+The one-time ownership transition is complete. The state owns the Incus server
+API setting, `incusbr0`, the `default` and `4ubuntu-vm` profiles, and the
+`truenas` pool. A normal plan must report no changes before new resources are
+added. Do not repeat the original imports against another state.
 
-The `incus_server.server_zant` resource requires no import. Its first plan is
-shown as a create operation, but the provider does not create or replace the
-Incus daemon. It adopts the existing server and manages only the explicitly
-configured `core.https_address` setting.
-
-On a genuinely fresh host with no Incus API objects, skip the import commands;
-OpenTofu will create the network and profiles from this configuration.
+On a genuinely fresh host with no Incus API objects, use a separate reviewed
+bootstrap procedure rather than reusing the current state.
 
 ## TrueNAS storage gate
 
-The TrueNAS pool is disabled by default. First confirm API access and that the
-intended child dataset does not exist:
+The current TrueNAS pool has passed its API, iSCSI, and dataset checks and is
+enabled by default. On a fresh replacement host, temporarily set
+`enable_truenas_pool = false` in an untracked `terraform.tfvars` before the
+first plan. Then confirm API access and that the intended child dataset does
+not exist:
 
 ```bash
 sudo truenas_incus_ctl \
@@ -103,15 +94,10 @@ sudo truenas_incus_ctl \
   --initiator 2
 ```
 
-When the API, iSCSI test, and dataset check all pass, create an untracked
-`terraform.tfvars` containing:
-
-```hcl
-enable_truenas_pool = true
-```
-
-Then review `tofu plan` before applying. Enabling the pool also adds the root
-disk device to the `default` profile.
+When the API, iSCSI test, and dataset check all pass, remove the temporary
+`enable_truenas_pool = false` override or change it to `true`. Then review
+`tofu plan` before applying. Enabling the pool also adds the root disk device
+to the `default` profile.
 
 OpenTofu and Incus state contain only the config profile name `truenas`, not
 the API key or rendered file path. Nix places a wrapper in the Incus service

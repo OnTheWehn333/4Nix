@@ -1,3 +1,8 @@
-# Keep this false until truenas_incus_ctl can query TrueNAS and its iSCSI
-# setup test succeeds.
-enable_truenas_pool = false
+# The current server-zant pool has passed its API, iSCSI, and dataset safety
+# checks. Set this false only while gating pool creation on a fresh replacement
+# host.
+enable_truenas_pool = true
+
+# The server-gohdan bootstrap image has been built and verified. Set this false
+# only while preparing a replacement bootstrap artifact.
+enable_server_gohdan = true

@@ -90,6 +90,10 @@ in {
       "npm:pi-mono-context-guard"
       "npm:pi-mono-simplify"
     ];
+    settings = {
+      defaultProvider = "openai-codex";
+      defaultModel = "gpt-6-astra";
+    };
   };
 
   home.stateVersion = "26.05";
