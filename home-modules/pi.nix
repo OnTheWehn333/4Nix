@@ -42,18 +42,67 @@ in {
         idPrefix = "obsidian";
       };
 
+      sources.cursor = {
+        input = "cursor-plugins";
+        subdir = "pstack/skills";
+        idPrefix = "cursor";
+      };
+
+      sources.mattpocock = {
+        input = "mattpocock-skills";
+        subdir = "skills";
+        idPrefix = "mattpocock";
+      };
+
+      # Explicit selection: upstream updates must not silently add more skills.
       skills.enable = [
         "obsidian/obsidian-markdown"
         "obsidian/obsidian-bases"
         "obsidian/json-canvas"
         "obsidian/obsidian-cli"
         "obsidian/defuddle"
+
+        "cursor/unslop"
+
+        # Matt Pocock: engineering and productivity only (no misc/in-progress).
+        "mattpocock/engineering/ask-matt"
+        "mattpocock/engineering/code-review"
+        "mattpocock/engineering/codebase-design"
+        "mattpocock/engineering/diagnosing-bugs"
+        "mattpocock/engineering/domain-modeling"
+        "mattpocock/engineering/grill-with-docs"
+        "mattpocock/engineering/implement"
+        "mattpocock/engineering/improve-codebase-architecture"
+        "mattpocock/engineering/prototype"
+        "mattpocock/engineering/research"
+        "mattpocock/engineering/resolving-merge-conflicts"
+        "mattpocock/engineering/setup-matt-pocock-skills"
+        "mattpocock/engineering/tdd"
+        "mattpocock/engineering/to-spec"
+        "mattpocock/engineering/to-tickets"
+        "mattpocock/engineering/triage"
+        "mattpocock/engineering/wayfinder"
+        "mattpocock/engineering/wizard"
+        "mattpocock/productivity/grill-me"
+        "mattpocock/productivity/grilling"
+        "mattpocock/productivity/handoff"
+        "mattpocock/productivity/teach"
+        "mattpocock/productivity/to-questionnaire"
+        "mattpocock/productivity/wait-what"
+        "mattpocock/productivity/writing-for-agents"
       ];
 
       targets.pi.enable = true;
     };
 
     home.file.".pi/agent/settings.json".text = lib.generators.toJSON {} piSettings;
+
+    home.file.".pi/agent/APPEND_SYSTEM.md".text = lib.mkAfter ''
+      Before your first response, read ~/.pi/agent/skills/cursor/unslop/SKILL.md.
+      Apply its writing rules to every response and authored prose throughout the session.
+      If those rules are no longer in context, read the file again before responding.
+      Preserve technical accuracy, literal code, commands, identifiers, and quotations.
+    '';
 
     home.activation.checkPiAvailable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if ! command -v pi &>/dev/null; then

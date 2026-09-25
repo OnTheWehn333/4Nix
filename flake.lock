@@ -81,6 +81,22 @@
         "type": "github"
       }
     },
+    "cursor-plugins": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789893264,
+        "narHash": "sha256-UxLW3/Xw/U19c87RHa3nYazUvNzRe0ZwWEshnh61TcM=",
+        "owner": "cursor",
+        "repo": "plugins",
+        "rev": "6ed0f7a9504f577d7529064103cecce9be7dfc5e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cursor",
+        "repo": "plugins",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -196,6 +212,22 @@
         "type": "github"
       }
     },
+    "mattpocock-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1789726349,
+        "narHash": "sha256-L3CpIT2DeI+fUFl9fcygojtQo2DzEen69rMD1XqR1vM=",
+        "owner": "mattpocock",
+        "repo": "skills",
+        "rev": "c55ee46073ed923f86ce59a5eb3b6d895095d1b7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mattpocock",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
@@ -232,26 +264,6 @@
       "original": {
         "owner": "zhaofengli",
         "repo": "nix-homebrew",
-        "type": "github"
-      }
-    },
-    "nix-skills": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1786330891,
-        "narHash": "sha256-yXhghAk49oEbR+Rl1kqwUsQAA1IabyKoCLxuIbtVVlI=",
-        "owner": "sudosubin",
-        "repo": "nix-skills",
-        "rev": "109066a7376074838c788937a1818850c907563f",
-        "type": "github"
-      },
-      "original": {
-        "owner": "sudosubin",
-        "repo": "nix-skills",
         "type": "github"
       }
     },
@@ -325,21 +337,35 @@
         "type": "github"
       }
     },
+    "party-console": {
+      "locked": {
+        "lastModified": 1789864708,
+        "narHash": "sha256-4OAF2Xp2KZK/pfUiNUeH07NdHrK/LqA36y3L563029k=",
+        "path": "/Users/noahbalboa66/Projects/party-console",
+        "type": "path"
+      },
+      "original": {
+        "path": "/Users/noahbalboa66/Projects/party-console",
+        "type": "path"
+      }
+    },
     "root": {
       "inputs": {
         "agent-runner": "agent-runner",
         "agent-skills-nix": "agent-skills-nix",
+        "cursor-plugins": "cursor-plugins",
         "disko": "disko",
         "home-manager": "home-manager_2",
         "home-manager-darwin": "home-manager-darwin",
         "kepano-obsidian-skills": "kepano-obsidian-skills",
+        "mattpocock-skills": "mattpocock-skills",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
-        "nix-skills": "nix-skills",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "party-console": "party-console",
         "sops-nix": "sops-nix",
         "sops-nix-darwin": "sops-nix-darwin"
       }

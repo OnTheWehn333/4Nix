@@ -56,14 +56,6 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
-    # nix-skills: Nixpkgs overlay for AI agent skills from skills.sh
-    # SECURITY: No formal vetting policy - see AGENTS.md for security notes
-    # Update cadence: auto-updates every 3hrs upstream; we pin to flake.lock (manual update)
-    nix-skills = {
-      url = "github:sudosubin/nix-skills";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     # agent-skills-nix: Declarative agent skills management
     agent-skills-nix = {
       url = "github:Kyure-A/agent-skills-nix";
@@ -73,6 +65,17 @@
     # kepano/obsidian-skills: Skills for Obsidian
     kepano-obsidian-skills = {
       url = "github:kepano/obsidian-skills";
+      flake = false;
+    };
+
+    # Skill content is pinned in flake.lock and selected in home-modules/pi.nix.
+    cursor-plugins = {
+      url = "github:cursor/plugins";
+      flake = false;
+    };
+
+    mattpocock-skills = {
+      url = "github:mattpocock/skills";
       flake = false;
     };
 
@@ -98,7 +101,6 @@
     overlaysList = [
       overlays.unstable-packages # defines pkgs.unstable
       overlays.modifications # uses pkgs.unstable.tmux
-      inputs.nix-skills.overlays.default # AI agent skills (pkgs.skills.<owner>.<repo>.<skill>)
     ];
 
     vimDefaultEditorModule = {pkgs, ...}: {
