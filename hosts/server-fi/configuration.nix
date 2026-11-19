@@ -11,6 +11,15 @@
     sshHostKeys.pc-akkala
   ];
   hermesPackage = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  trialPkgs = import inputs.nixpkgs-t3 {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfree = false;
+  };
+  t3Package = trialPkgs.t3code.override {
+    enableCodex = false;
+    enableGitHub = false;
+  };
+  piPackage = trialPkgs.pi-coding-agent;
   hermesSession = pkgs.writeShellApplication {
     name = "hermes-session";
     runtimeInputs = [pkgs.tmux hermesPackage];
@@ -20,7 +29,7 @@
     '';
   };
 in {
-  imports = [./obsidian.nix];
+  imports = [./obsidian.nix ../../modules/t3-code.nix];
 
   networking = {
     hostName = "server-fi";
@@ -57,8 +66,16 @@ in {
       createHome = true;
       linger = true;
       openssh.authorizedKeys.keys = operatorKeys;
-      packages = [hermesPackage hermesSession];
+      packages = [hermesPackage hermesSession t3Package piPackage];
     };
+  };
+
+  services.t3-code = {
+    enable = true;
+    package = t3Package;
+    user = "agent";
+    workingDirectory = "${config.users.users.agent.home}/workspace";
+    path = [hermesPackage piPackage];
   };
 
   services.getty.helpLine = lib.mkForce "";
@@ -113,7 +130,10 @@ in {
     lib.genAttrs ["home-manager-noahbalboa66" "home-manager-agent"] (_: {
       wants = ["network-online.target"];
       after = ["network-online.target"];
-    });
+    })
+    // {
+      t3-code.after = ["home-manager-agent.service"];
+    };
 
   time.timeZone = "America/Chicago";
   system.stateVersion = "26.05";

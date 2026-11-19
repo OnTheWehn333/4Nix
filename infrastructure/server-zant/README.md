@@ -119,7 +119,7 @@ Images larger than 32 GiB still need investigation until the driver is fixed.
 Apply this setting only through a reviewed full plan. Expect an in-place pool
 configuration update, not pool replacement or existing-volume resizing. After
 a failed create, use a fresh plan against current state, never the old saved
-plan. The root playbook contains the scoped Fi retry sequence.
+plan.
 
 ## VM image paths and overrides
 
@@ -136,7 +136,7 @@ Fi is enabled in the tracked defaults after its initial image was prepared.
 No enable override is required unless local tfvars intentionally disables it.
 
 Gohdan previously used the generic `result/` directory. Before the next plan,
-use the root playbook's manual preparation steps to copy those artifacts into
+copy the existing artifacts without overwriting files in
 `result-server-gohdan/` and compare checksums, but only if you know they are
 Gohdan's image. The copy preserves `result/` and does not overwrite existing
 files. Matching checksums establish copy integrity, not image provenance.
@@ -148,8 +148,8 @@ Review the full live plan after changing an image source path. It may propose
 an image-resource change; this is not permission to replace an existing VM.
 Both VM instances ignore source-image changes and must retain their disks.
 Do not remove lifecycle protections to make a plan apply. For the current
-Fi-only rollout, retain Gohdan's exact old absolute image path using the
-playbook's one-time plan override. Preparing its dedicated directory does not
+Fi-only rollout, keep `server_gohdan_image_directory` set to the exact old
+absolute path for the plan. Preparing its dedicated directory does not
 require replacing its existing image resource. That path migration is deferred.
 
 ## Server-fi agent VM
@@ -165,9 +165,8 @@ only from Zant's bridge address, using the existing Hylia/Akkala public keys.
 There is no LAN forward, public listener or messaging gateway. The existing
 NAT bridge still permits outbound LAN access; this is not network isolation.
 
-Build `.#server-fi-incus-image` on an x86_64 Linux machine. The root playbook
-provides a Hylia-evaluated derivation transfer and native Zant build, followed
-by image transfer back to Hylia. Copying the derivation avoids evaluating
+Evaluate `.#server-fi-incus-image` on Hylia, build its derivation on Zant
+using x86_64 Linux, and transfer the image back to Hylia. Copying the derivation avoids evaluating
 Hylia-local flake paths and private Git inputs on Zant. OpenTofu expects the
 resulting `disk.qcow2` and `metadata.tar.xz` under `../../result-server-fi`.
 Review the whole plan before applying. Only Fi's image, profile and instance
@@ -179,13 +178,13 @@ agent account retains UID 1000 and uses `/home/agent`. It has no sudo or
 container-runtime group membership, and SSH agent/TCP forwarding stays disabled.
 Do not run agents as the administrator or forward administrative credentials.
 
-An existing guest still using `hermes` needs the root playbook's guarded
-account/home cutover before switching to this configuration. Build and test the
+Do not use the routine Fi switch on a guest still using the old `hermes`
+account. Plan the account and home migration first. Build and test the
 new closure first, stop Hermes, privately copy the complete `.hermes/` and
 `workspace/` directories, then wait for explicit copy readiness before the
 login/home rename and activation. Keep `/var/lib/hermes` as private rollback
 data. Do not recreate the VM or re-import its bootstrap image for this update.
-The handoff captures the exact previous closure and includes rollback. Review
+Record the exact previous closure and a rollback procedure before migration. Review
 absolute old-home references and linked Git worktrees separately; do not blindly
 rewrite configuration, history or database files.
 
@@ -223,8 +222,44 @@ After the cutover, verify ordinary SSH as `agent` and `hc --version`, then add
 entry supplies the Zant jump. No GUI runs on Fi. Start `hermes` directly in a core
 terminal; the optional `hermes-session` wrapper puts tmux between core and Hermes
 and is for separate tmux use. Rich Hermes Inbox status is not established for
-this pinned version; ordinary terminal access is the first target. T3, mobile
-connectivity, LAN forwards and Tailscale setup are not part of this change.
+this pinned version; ordinary terminal access is the first target. Keep the working `SSH_AUTH_SOCK` in the existing Herdr profile's local SSH transport environment.
+Mobile connectivity, LAN forwards and Tailscale setup remain separate work.
+
+T3 Code is an additional structured-chat frontend, not a replacement for Herdr.
+Fi declares a Nix-owned `t3-code.service` running as `agent`, starting at boot and
+listening only on `127.0.0.1:3773`. The service explicitly runs the headless `t3`
+entry point. Its maintained T3 0.1.8 package includes desktop assets, but no GUI
+is launched on Fi. A separate pinned `nixpkgs-t3` source supplies that package
+and Pi 1.5.2 without updating the shared unstable input. Codex and the T3 wrapper's
+GitHub helper default are disabled. Pi and Hermes are available on the service's
+explicit runtime PATH; no interactive shell initialization is required.
+
+Before first activation, run the `t3-code-config` and `t3-code-service` checks
+on Linux. Stop if Fi already has T3 state or another service on port 3773.
+The routine deployment command does not check those preconditions. State stays private in `/home/agent/.t3`;
+Pi authentication is separate under its own home state. Service startup stdout
+is discarded because it can contain pairing details. The unprivileged launcher
+writes application stderr to `.t3/logs/service.stderr.log`, not the journal.
+The root-owned `/etc/t3code/policy.json` disables self-updates, provider update
+checks, automatic thread continuation, T3 Connect, telemetry and browser bootstrap.
+Keep T3, Pi and Hermes updates in Nix. Do not use the app's Update all, the vendor
+service installer or desktop-managed SSH runtime downloads for this backend.
+
+For this trial, Noah keeps one ordinary SSH tunnel open from Hylia through the
+existing administrator `server-fi` alias. It forwards Hylia loopback port 13773
+to Fi loopback port 3773. The Mac app pairs with that local endpoint. The tunnel
+needs the administrator's existing forwarding permission; agent forwarding
+restrictions and firewall rules stay unchanged. T3 and its provider children
+still run as `agent`, never as the administrator. Pairing links are secrets.
+Generate and enter them privately, not in Git, logs, issue reports or chat.
+
+The existing Mac 0.1.7 client and backend 0.1.8 declare orchestration protocol 2;
+actual pairing and provider use still require a smoke test. Configure Pi as a
+native provider and Hermes as the local executable `hermes` with argument `acp`
+on the Fi environment. They keep their own credentials, sessions and memory.
+T3-managed Pi child threads remain visible and resumable in the shared UI. A
+Hermes-to-Pi dispatch through existing T3 task controls needs an explicit trial;
+no custom orchestrator or automatic conversation import is installed here.
 
 Obsidian Headless syncs the existing `4V2` remote vault bidirectionally into
 `/srv/obsidian/4V2`. Both accounts have a `~/ObsidianVaults/4V2` link. The agent
@@ -236,11 +271,11 @@ all configured attachment categories, including unsupported types, are enabled.
 The `obsidian-sync` account keeps login and encryption state under its private
 `/var/lib/obsidian-sync` home. Agents can access the vault but cannot directly
 read that account's credentials. The client is packaged from Hermes's existing
-locked nixpkgs, without a new flake input or runtime npm install. The existing
-Akkala sync module is unchanged because it assumes same-user credential storage.
+locked nixpkgs, without a new flake input or runtime npm install. Fi and
+Akkala both use the shared NixOS `services.obsidian-headless` module.
 
-The root playbook contains manual login, remote-vault selection and first-sync
-steps. Continuous `obsidian-4V2.service` startup is gated by
+Log in manually as the sync account, select the existing remote vault and
+complete its first sync before enabling continuous sync. Continuous `obsidian-4V2.service` startup is gated by
 `/var/lib/obsidian-sync/4V2.ready`, created only after successful setup. Its
 sandbox permits writes only to sync state and the vault. A setgid directory and
 default ACLs preserve shared access for ordinary files created with umask 077.
@@ -252,9 +287,9 @@ Trusted agent tools can share the `agent` account, with separate tool settings
 and project workspaces. A user is a permission role, not one account per tool.
 Those tools can generally access each other's files and credentials. Use separate
 accounts where permissions differ, and restricted containers or VMs for
-untrusted workloads. T3 Code integration remains deferred.
+untrusted workloads. The T3 backend is a control server, not a permission sandbox.
 
-Tmux survives an SSH disconnect but not a VM reboot. No unattended agent unit,
+Tmux survives an SSH disconnect but not a VM reboot. No automatic agent-task continuation,
 snapshot schedule or backup policy is configured. Back up agent state,
 workspaces and the vault independently before updates. Sync is not a backup.
 Instance destruction is blocked, and image changes do not replace the existing

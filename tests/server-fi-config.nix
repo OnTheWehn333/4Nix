@@ -58,6 +58,13 @@
       && !(cfg.systemd.services ? hermes)
       && !(cfg.systemd.services ? agent)
       && !(cfg.systemd.services ? herdr-core);
+    "T3 backend shares only the unprivileged agent runtime" =
+      cfg.services.t3-code.enable
+      && cfg.services.t3-code.user == "agent"
+      && cfg.services.t3-code.port == 3773
+      && cfg.systemd.services.t3-code.serviceConfig.User == "agent"
+      && cfg.systemd.services.t3-code.serviceConfig.NoNewPrivileges
+      && cfg.systemd.services.t3-code.environment.HOME == agent.home;
     "Herdr core belongs to the agent profile only" =
       lib.any (package: (package.pname or "") == "herdr-core") cfg.home-manager.users.agent.home.packages
       && !(lib.any (package: (package.pname or "") == "herdr-core") cfg.home-manager.users.noahbalboa66.home.packages);

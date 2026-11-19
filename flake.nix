@@ -5,6 +5,11 @@
     # Linux nixpkgs (for NixOS + HM on Linux)
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Only Fi's T3/Pi trial uses this newer package source.
+    nixpkgs-t3 = {
+      url = "github:NixOS/nixpkgs/04906337b6d53e8bb0eaf0470ae9f070a4d4eb55";
+      flake = false;
+    };
 
     # Darwin nixpkgs (for nix-darwin + HM on macOS)
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-26.05-darwin";
@@ -289,6 +294,15 @@
     checks.x86_64-linux.server-fi-config = import ./tests/server-fi-config.nix {
       pkgs = linuxPkgs;
       config = inputs.self.nixosConfigurations.server-fi.config;
+    };
+
+    checks.x86_64-linux.t3-code-config = import ./tests/t3-code-config.nix {
+      pkgs = linuxPkgs;
+      config = inputs.self.nixosConfigurations.server-fi.config;
+    };
+
+    checks.x86_64-linux.t3-code-service = import ./tests/t3-code-service.nix {
+      pkgs = linuxPkgs;
     };
 
     checks.x86_64-linux.obsidian-headless-config = import ./tests/obsidian-headless-config.nix {

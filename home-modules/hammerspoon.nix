@@ -157,6 +157,7 @@
         {key = "s", action = function() centerFocusedWindow(0.60, 0.85) end},
         {key = "u", action = function() fillFocusedWindow() end},
         {key = "h", action = function() focusApp("Ghostty") end},
+        {key = "3", action = function() focusApp("T3 Code (Beta)") end},
         {key = "f", action = function() focusFinderWindow() end},
         {modifiers = {"cmd", "alt", "shift"}, key = "f", action = function() newFinderWindow() end},
         {key = "n", action = function() focusApp("Music") end},

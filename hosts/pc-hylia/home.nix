@@ -62,6 +62,9 @@ in {
   programs.git.signing.key = gpgSigningKeys.pc-hylia;
 
   programs.ssh.settings = {
+    # Dock apps may not inherit SSH_AUTH_SOCK. Select the GPG agent on both hops.
+    "server-fi server-zant".IdentityAgent = "${config.home.homeDirectory}/.gnupg/S.gpg-agent.ssh";
+
     "server-fi" = {
       HostName = "10.100.0.30";
       User = "noahbalboa66";
