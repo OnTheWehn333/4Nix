@@ -44,6 +44,7 @@ resource "incus_storage_pool" "truenas" {
     "truenas.force_reuse" = "false"
     "truenas.initiator"   = local.truenas_initiator
     "truenas.portal"      = local.truenas_portal
+    "volume.size"         = "32GiB"
   }
 
   lifecycle {

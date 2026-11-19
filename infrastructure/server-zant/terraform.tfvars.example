@@ -1,8 +1,11 @@
-# The current server-zant pool has passed its API, iSCSI, and dataset safety
-# checks. Set this false only while gating pool creation on a fresh replacement
-# host.
-enable_truenas_pool = true
+# Defaults are declared in variables.tf. Add only intentional overrides to the
+# ignored terraform.tfvars; this example leaves all defaults in effect.
 
-# The server-gohdan bootstrap image has been built and verified. Set this false
-# only while preparing a replacement bootstrap artifact.
-enable_server_gohdan = true
+# Fi is enabled by default at 10.100.0.30. Verify its image in
+# result-server-fi before provisioning it.
+
+# On a fresh replacement host, disable the TrueNAS pool and both VMs until
+# their storage and image prerequisites have been checked.
+# enable_truenas_pool = false
+# enable_server_gohdan = false
+# enable_server_fi = false

@@ -90,6 +90,154 @@ cp -n result/disk.qcow2 result/metadata.tar.xz result-server-gohdan/
 # replacement or deletion; preparing artifacts does not update the guest OS.
 
 # ─────────────────────────────────────────────────────────────
+# server-fi: fresh VM provisioning
+# Existing Fi must use the agent account/home cutover section below instead.
+# Run from ~/Projects/4Nix on Hylia. Nothing here activates Zant's OS.
+# The new files must be tracked for a Git flake to include them.
+# This stages files only; Noah handles commits.
+# ─────────────────────────────────────────────────────────────
+
+git add -- hosts/server-fi/configuration.nix hosts/server-fi/home-common.nix hosts/server-fi/home-noahbalboa66.nix hosts/server-fi/home-agent.nix hosts/server-fi/obsidian.nix home-modules/herdr-core.nix tests/server-fi-config.nix tests/obsidian-hosts.nix tests/obsidian-headless-config.nix tests/server-fi-vault.nix infrastructure/server-zant/server-fi.tf
+
+# Evaluate on Hylia, then copy the derivation and its source dependencies.
+# This avoids evaluating Hylia-local flake inputs or using private Git access
+# on Zant. nix copy transfers store paths but does not build the Linux image.
+# A no-build flake check can print .drv paths without writing them to the
+# store. Force uncached evaluation, then check validity before any transfer.
+fi_image_drv=$(nix --extra-experimental-features 'nix-command flakes' eval --raw .#packages.x86_64-linux.server-fi-incus-image.drvPath --no-write-lock-file --option builders '' --option eval-cache false)
+nix --extra-experimental-features 'nix-command flakes' path-info "$fi_image_drv" > /dev/null && nix --extra-experimental-features 'nix-command flakes' copy --derivation --to ssh-ng://server-zant "$fi_image_drv"
+
+# Run the common module's isolated Linux VM test before provisioning or
+# migrating Akkala. It checks multiple vaults, inherited ACLs under umask 077,
+# private credentials, per-vault readiness and existing-directory refusal.
+# Its fake client never logs in, contacts Obsidian or syncs a real vault.
+fi_vault_test_drv=$(nix --extra-experimental-features 'nix-command flakes' eval --raw .#checks.x86_64-linux.server-fi-vault-permissions.drvPath --no-write-lock-file --option builders '' --option eval-cache false)
+nix --extra-experimental-features 'nix-command flakes' path-info "$fi_vault_test_drv" > /dev/null && nix --extra-experimental-features 'nix-command flakes' copy --derivation --to ssh-ng://server-zant "$fi_vault_test_drv" && ssh server-zant "nix --extra-experimental-features 'nix-command flakes' build '${fi_vault_test_drv}^*' --no-link --option builders '' --print-build-logs"
+
+# Native x86_64-linux build on Zant. This can take time and use substantial
+# disk space. Keep the previous result link until the new build succeeds.
+ssh server-zant "mkdir -p /home/noahbalboa66/build/server-fi && nix --extra-experimental-features 'nix-command flakes' build '${fi_image_drv}^*' --out-link /home/noahbalboa66/build/server-fi/result --option builders '' --print-build-logs"
+ssh server-zant 'cd /home/noahbalboa66/build/server-fi/result && sha256sum disk.qcow2 metadata.tar.xz' > /tmp/server-fi-image.sha256
+mkdir -p result-server-fi
+rsync -rtL server-zant:/home/noahbalboa66/build/server-fi/result/ ./result-server-fi/
+(cd result-server-fi && shasum -a 256 -c /tmp/server-fi-image.sha256)
+
+# Fi is now enabled in tracked defaults. Preserve intentional local tfvars
+# overrides; do not overwrite the file or reset unrelated settings.
+# The first apply imported Fi's image but failed during storage conversion.
+# Do not replay that saved plan, manually delete volumes, or restart iSCSI.
+# The managed pool's 32GiB initial-volume default avoids cache growth for Fi's
+# roughly 15GiB image. It does not resize existing guest disks. Fi still gets
+# its explicit 256GiB root. Larger future images may need a driver fix.
+# Keep Gohdan's old image path for this rollout so no image replacement occurs.
+# Run this planning block on Hylia. It makes no live resource changes.
+# BEGIN FI STORAGE RETRY PLAN
+(
+  set -euo pipefail
+  umask 077
+  cd "$HOME/Projects/4Nix/infrastructure/server-zant"
+  plan_dir="$HOME/.local/state/4nix"
+  plan_file="$plan_dir/server-fi-storage-fix.tfplan"
+  mkdir -p "$plan_dir"
+  chmod 700 "$plan_dir"
+  if test -e "$plan_file"; then
+    printf 'Plan already exists; stop and review it: %s\n' "$plan_file" >&2
+    exit 1
+  fi
+  printf 'Plan destination: %s\n' "$plan_file"
+  tofu init -lockfile=readonly
+  tofu fmt -check main.tf variables.tf server-fi.tf
+  tofu validate
+  tofu plan -var="server_gohdan_image_directory=$HOME/Projects/4Nix/result" -out="$plan_file"
+  printf '\nSaved plan: %s\n' "$plan_file"
+  tofu show -json "$plan_file" | jq '{
+    changes: [.resource_changes[]? | select(.change.actions != ["no-op"])
+      | {address, actions: .change.actions}],
+    pool: [.resource_changes[]? | select(.address == "incus_storage_pool.truenas[0]")
+      | .change as $c | {
+        before: $c.before.config["volume.size"],
+        after: $c.after.config["volume.size"],
+        other_changed_keys: (($c.before.config | keys) + ($c.after.config | keys)
+          | unique | map(select(. != "volume.size" and ($c.before.config[.] != $c.after.config[.]))))
+      }]
+  }'
+)
+# END FI STORAGE RETRY PLAN
+
+# Stop and review the fresh full plan. Expected after the partial apply:
+# one in-place pool update adding only volume.size=32GiB, Fi instance create,
+# zero destruction and no Gohdan changes. Reject any other actions. Keep a
+# recoverable backup of important Gohdan data; its bootstrap image is not one.
+# Apply ONLY after this saved plan has been reviewed. Saved-plan apply does
+# not ask for another confirmation. This creates and boots Fi.
+tofu -chdir="$HOME/Projects/4Nix/infrastructure/server-zant" apply "$HOME/.local/state/4nix/server-fi-storage-fix.tfplan"
+incus info zant:server-fi
+# Verify SSH/boot, root block-device capacity, and Gohdan health before
+# accepting the workaround. No cleanup or storage-service restart is included.
+
+# Direct jump commands work before applying Hylia's Home Manager SSH entry.
+ssh -J server-zant noahbalboa66@10.100.0.30
+# In the guest administrator session, check the guest agent and disk:
+systemctl status incus-agent
+findmnt /
+lsblk
+
+# Home Manager prepares the same dev bundle used on the workstations for both
+# login users. Its existing hooks download Rust's stable toolchain and clone
+# the Neovim config. Wait for those activations before checking the tools.
+systemctl status home-manager-noahbalboa66 home-manager-agent
+git --version
+node --version
+pnpm --version
+python3 --version
+go version
+rustc --version
+dotnet --list-sdks
+nvim --version
+
+# Obsidian setup runs only as the private sync account, never as agent.
+# Back up the existing 4V2 vault on another device first. Do not let agents
+# write into Fi's new vault until the initial download has completed.
+# Stop any existing daemon before interactive setup or a one-time sync.
+sudo systemctl stop obsidian-4V2
+sudo -u obsidian-sync -H env XDG_CONFIG_HOME=/var/lib/obsidian-sync/.config bash
+
+# In the sync-account shell, enter account/E2E credentials only at prompts.
+# Select the existing 4V2 remote vault. Do not create a new remote vault.
+umask 077
+ob login
+ob sync-setup --vault 4V2 --path /srv/obsidian/4V2 --device-name server-fi
+ob sync-config --path /srv/obsidian/4V2 --mode bidirectional --file-types image,audio,video,pdf,unsupported --configs ''
+ob sync --path /srv/obsidian/4V2
+# Return to the guest administrator after the first sync completes successfully.
+exit
+
+# Only after successful setup and first sync, enable continuous sync on boot.
+sudo touch /var/lib/obsidian-sync/4V2.ready
+sudo systemctl start obsidian-4V2
+systemctl status obsidian-4V2
+sudo -u agent test -w /srv/obsidian/4V2
+# Credentials remain private. The following test must succeed.
+sudo -u agent test ! -r /var/lib/obsidian-sync/.config
+ls -ld ~/ObsidianVaults/4V2
+# Return to Hylia before the following SSH commands.
+exit
+
+# Run setup as the unprivileged agent account. Enter provider credentials only
+# in the interactive prompt, never in this file or on a command line.
+ssh -t -J server-zant agent@10.100.0.30 'hermes --version'
+ssh -t -J server-zant agent@10.100.0.30 'hermes setup'
+ssh -t -J server-zant agent@10.100.0.30 'hermes-session'
+# Detach with Ctrl-b then d. Re-run the previous command to reconnect.
+# Verify a provider call and reconnect before treating the VM as ready.
+# tmux survives SSH disconnects, not a VM reboot. Sessions and memory stay
+# under /home/agent/.hermes; projects stay under /home/agent/workspace.
+# Back up agent state, workspaces and /srv/obsidian/4V2 before updates.
+# Sync is not a backup. Snapshots are not configured here.
+# Do not delete the VM to roll back. Keep prior guest NixOS generations and
+# use the guest boot menu or sudo nixos-rebuild switch --rollback manually.
+
+# ─────────────────────────────────────────────────────────────
 # server-fi: agent account/home cutover and Herdr core
 # MANUAL ONLY. No switch until Noah confirms the copy is ready and the native
 # Linux checks below pass. Keep an administrator SSH session open throughout.

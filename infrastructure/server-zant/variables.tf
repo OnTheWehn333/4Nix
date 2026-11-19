@@ -39,3 +39,33 @@ variable "server_gohdan_memory" {
   type        = string
   default     = "8GiB"
 }
+
+variable "enable_server_fi" {
+  description = "Manage server-fi after building its image."
+  type        = bool
+  default     = true
+}
+
+variable "server_fi_image_directory" {
+  description = "Hylia-local directory containing disk.qcow2 and metadata.tar.xz from server-fi-incus-image."
+  type        = string
+  default     = "../../result-server-fi"
+}
+
+variable "server_fi_ipv4_address" {
+  description = "Static IPv4 address for server-fi on incusbr0."
+  type        = string
+  default     = "10.100.0.30"
+}
+
+variable "server_fi_cpu_count" {
+  description = "Virtual CPU count shared by agents on server-fi."
+  type        = number
+  default     = 4
+}
+
+variable "server_fi_memory" {
+  description = "Memory limit shared by agents on server-fi."
+  type        = string
+  default     = "8GiB"
+}

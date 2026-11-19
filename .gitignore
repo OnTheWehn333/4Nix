@@ -1,5 +1,6 @@
 result
 result-server-gohdan
+result-server-fi
 
 # OpenTofu working data and local state. Commit .terraform.lock.hcl.
 **/.terraform/*

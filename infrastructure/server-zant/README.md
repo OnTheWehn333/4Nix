@@ -104,7 +104,36 @@ the API key or rendered file path. Nix places a wrapper in the Incus service
 PATH that injects the root-only rendered `--config-file` when the driver invokes
 `truenas_incus_ctl`.
 
+## Initial volume size
+
+The managed `truenas` pool sets `volume.size = 32GiB` for new volumes without
+an explicit size, including optimized VM image caches. This does not resize
+existing VM disks. Explicit guest root devices remain 256 GiB.
+
+This is a workaround for the Incus 7.0.1 TrueNAS raw-block growth path. An
+unset default starts image caches at 10 GiB; growing a larger image can leave
+the active iSCSI device reporting its old capacity before QEMU conversion.
+Starting at 32 GiB avoids that growth for Fi's approximately 15 GiB image.
+Images larger than 32 GiB still need investigation until the driver is fixed.
+
+Apply this setting only through a reviewed full plan. Expect an in-place pool
+configuration update, not pool replacement or existing-volume resizing. After
+a failed create, use a fresh plan against current state, never the old saved
+plan. The root playbook contains the scoped Fi retry sequence.
+
 ## VM image paths and overrides
+
+Keep VM image artifacts in separate directories under the repo root:
+
+- Gohdan uses `result-server-gohdan/`.
+- Fi uses `result-server-fi/`.
+
+Each directory contains `disk.qcow2` and `metadata.tar.xz`. The corresponding
+image-directory variables default to these paths, resolved from
+`infrastructure/server-zant` on Hylia. Keep `terraform.tfvars` for intentional
+overrides; do not repeat the image paths, addresses or other tracked defaults.
+Fi is enabled in the tracked defaults after its initial image was prepared.
+No enable override is required unless local tfvars intentionally disables it.
 
 Gohdan previously used the generic `result/` directory. Before the next plan,
 use the root playbook's manual preparation steps to copy those artifacts into
@@ -114,6 +143,123 @@ files. Matching checksums establish copy integrity, not image provenance.
 For future Gohdan builds, use the `server-gohdan-incus-image` output with the
 same Hylia-evaluation and Zant-build workflow as Fi, and transfer the artifacts
 to `result-server-gohdan/`, not `result/`.
+
+Review the full live plan after changing an image source path. It may propose
+an image-resource change; this is not permission to replace an existing VM.
+Both VM instances ignore source-image changes and must retain their disks.
+Do not remove lifecycle protections to make a plan apply. For the current
+Fi-only rollout, retain Gohdan's exact old absolute image path using the
+playbook's one-time plan override. Preparing its dedicated directory does not
+require replacing its existing image resource. That path migration is deferred.
+
+## Server-fi agent VM
+
+`server-fi.tf` defines a NixOS VM for AI agents. Its defaults are 4 vCPUs,
+8 GiB RAM and a 256 GiB TrueNAS-backed root disk. `boot.autostart` keeps the VM
+running after an Incus host restart. `enable_server_fi` now defaults to `true`;
+keep the verified local image artifacts available for infrastructure plans.
+
+Fi uses the default address `10.100.0.30` on `incusbr0`, matching Hylia's SSH
+entry. Build and verify the image before provisioning. The guest accepts SSH
+only from Zant's bridge address, using the existing Hylia/Akkala public keys.
+There is no LAN forward, public listener or messaging gateway. The existing
+NAT bridge still permits outbound LAN access; this is not network isolation.
+
+Build `.#server-fi-incus-image` on an x86_64 Linux machine. The root playbook
+provides a Hylia-evaluated derivation transfer and native Zant build, followed
+by image transfer back to Hylia. Copying the derivation avoids evaluating
+Hylia-local flake paths and private Git inputs on Zant. OpenTofu expects the
+resulting `disk.qcow2` and `metadata.tar.xz` under `../../result-server-fi`.
+Review the whole plan before applying. Only Fi's image, profile and instance
+should be new. The current image-cache workaround retry also expects one
+in-place pool default update. Existing resources must not be replaced or deleted.
+
+SSH as `noahbalboa66` for administration and `agent` for agent work. The shared
+agent account retains UID 1000 and uses `/home/agent`. It has no sudo or
+container-runtime group membership, and SSH agent/TCP forwarding stays disabled.
+Do not run agents as the administrator or forward administrative credentials.
+
+An existing guest still using `hermes` needs the root playbook's guarded
+account/home cutover before switching to this configuration. Build and test the
+new closure first, stop Hermes, privately copy the complete `.hermes/` and
+`workspace/` directories, then wait for explicit copy readiness before the
+login/home rename and activation. Keep `/var/lib/hermes` as private rollback
+data. Do not recreate the VM or re-import its bootstrap image for this update.
+The handoff captures the exact previous closure and includes rollback. Review
+absolute old-home references and linked Git worktrees separately; do not blindly
+rewrite configuration, history or database files.
+
+Each login account has an explicit Home Manager profile under `hosts/server-fi`:
+`home-noahbalboa66.nix` for the operator and `home-agent.nix` for agent tools.
+Their Git identities and signing settings are defined in those files, without
+username conditionals. Both import `home-common.nix` for the same development
+bundle as Hylia and Akkala, plus Node.js 22, pnpm and Java. Git/GitHub CLI, Neovim, Python,
+Rust, .NET, Go and build tools are included. Existing activation hooks download
+the stable Rust toolchain and prepare the personal Neovim configuration.
+Git signing is disabled until Fi has its own signing identity. Agent commits
+use `Agent <agent@server-fi>`, not the administrator's author identity.
+
+Hermes is pinned through its upstream flake. Native Nix support is best-effort,
+so a native build, first boot and provider call are required before use. Setup
+stores credentials and state under `/home/agent/.hermes`; projects belong under
+`/home/agent/workspace`. Neither directory belongs in Git or an image derivation.
+For the migration, copy the entire stopped Hermes state directory, including
+hidden files and any SQLite sidecars, not only config.yaml or state.db. Preserve
+private permissions and original data. Other tools' manually managed state may
+need separate migration or login. Home Manager recreates its declared files and
+vault link; do not copy old Nix profile symlinks or duplicate the shared vault.
+New-home Rust/Neovim activation hooks may download their existing toolchain/editor
+configuration again. No SOPS payload or recipient is needed for Hermes.
+
+Herdr desktop is installed manually on Hylia, outside Nix. Fi uses the reusable
+`home-modules/herdr-core.nix` package, pinned to official core 0.1.21 for Linux
+x86_64 and installed only in the agent profile. Core starts on demand and keeps
+terminals alive after disconnect while the guest stays running. It uses the
+existing agent linger setting, not a new boot-started agent service. Updates to
+Fi's core go through Nix, not `hc update` or Herdr's remote installer.
+
+After the cutover, verify ordinary SSH as `agent` and `hc --version`, then add
+`agent@server-fi` in the Mac GUI's machine settings. The existing Hylia SSH host
+entry supplies the Zant jump. No GUI runs on Fi. Start `hermes` directly in a core
+terminal; the optional `hermes-session` wrapper puts tmux between core and Hermes
+and is for separate tmux use. Rich Hermes Inbox status is not established for
+this pinned version; ordinary terminal access is the first target. T3, mobile
+connectivity, LAN forwards and Tailscale setup are not part of this change.
+
+Obsidian Headless syncs the existing `4V2` remote vault bidirectionally into
+`/srv/obsidian/4V2`. Both accounts have a `~/ObsidianVaults/4V2` link. The agent
+has read/write access, so edits and deletions can propagate to other devices.
+Back up the existing vault before connecting Fi and finish its first download
+before letting agents write notes. Settings and plugin syncing are disabled;
+all configured attachment categories, including unsupported types, are enabled.
+
+The `obsidian-sync` account keeps login and encryption state under its private
+`/var/lib/obsidian-sync` home. Agents can access the vault but cannot directly
+read that account's credentials. The client is packaged from Hermes's existing
+locked nixpkgs, without a new flake input or runtime npm install. The existing
+Akkala sync module is unchanged because it assumes same-user credential storage.
+
+The root playbook contains manual login, remote-vault selection and first-sync
+steps. Continuous `obsidian-4V2.service` startup is gated by
+`/var/lib/obsidian-sync/4V2.ready`, created only after successful setup. Its
+sandbox permits writes only to sync state and the vault. A setgid directory and
+default ACLs preserve shared access for ordinary files created with umask 077.
+Explicit restrictive creation modes or chmod can still break shared access.
+The isolated `server-fi-vault-permissions` flake test checks these permissions
+with fake credential fixtures. Run it on Linux before provisioning.
+
+Trusted agent tools can share the `agent` account, with separate tool settings
+and project workspaces. A user is a permission role, not one account per tool.
+Those tools can generally access each other's files and credentials. Use separate
+accounts where permissions differ, and restricted containers or VMs for
+untrusted workloads. T3 Code integration remains deferred.
+
+Tmux survives an SSH disconnect but not a VM reboot. No unattended agent unit,
+snapshot schedule or backup policy is configured. Back up agent state,
+workspaces and the vault independently before updates. Sync is not a backup.
+Instance destruction is blocked, and image changes do not replace the existing
+VM. Update the guest
+through NixOS generations, not by recreating its disk.
 
 ## Remote state
 
