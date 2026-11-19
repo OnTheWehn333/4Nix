@@ -90,6 +90,181 @@ cp -n result/disk.qcow2 result/metadata.tar.xz result-server-gohdan/
 # replacement or deletion; preparing artifacts does not update the guest OS.
 
 # ─────────────────────────────────────────────────────────────
+# server-fi: agent account/home cutover and Herdr core
+# MANUAL ONLY. No switch until Noah confirms the copy is ready and the native
+# Linux checks below pass. Keep an administrator SSH session open throughout.
+# This updates the installed guest, not its Incus image or OpenTofu resources.
+# No T3, Mac package changes, LAN forward or Tailscale setup is included.
+# ─────────────────────────────────────────────────────────────
+
+# Phase 1, on Hylia in ~/Projects/4Nix. Review the selected source first.
+# Stage the new module/profile and removal of the old profile for flake visibility.
+# The agent does not stage or commit files.
+git add -A -- home-modules/herdr-core.nix hosts/server-fi tests/server-fi-config.nix tests/server-fi-vault.nix tests/obsidian-hosts.nix
+fi_agent_drv=$(nix eval --raw .#nixosConfigurations.server-fi.config.system.build.toplevel.drvPath --no-write-lock-file --option builders '' --option eval-cache false)
+fi_core_drv=$(nix eval --raw .#nixosConfigurations.server-fi.config.home-manager.users.agent.home.packages --apply 'packages: (builtins.head (builtins.filter (p: (p.pname or "") == "herdr-core") packages)).drvPath' --no-write-lock-file --option builders '' --option eval-cache false)
+fi_agent_policy_drv=$(nix eval --raw .#checks.x86_64-linux.server-fi-config.drvPath --no-write-lock-file --option builders '' --option eval-cache false)
+fi_agent_vault_drv=$(nix eval --raw .#checks.x86_64-linux.server-fi-vault-permissions.drvPath --no-write-lock-file --option builders '' --option eval-cache false)
+# Run policy and fake-client permissions checks on Zant, where KVM is available.
+# Keep transport commands from consuming subsequent pasted/heredoc commands.
+printf '%s\n' 'Phase 1: checking Linux policy and vault permissions on Zant.'
+nix path-info "$fi_agent_policy_drv" "$fi_agent_vault_drv" > /dev/null && nix copy --derivation --to ssh-ng://server-zant "$fi_agent_policy_drv" "$fi_agent_vault_drv" </dev/null && ssh -n server-zant "nix build '${fi_agent_policy_drv}^*' '${fi_agent_vault_drv}^*' --no-link --option builders '' --print-build-logs" </dev/null
+# Build the reviewed closure on Fi itself. This avoids importing unsigned Linux
+# build outputs through Hylia or granting either normal user new Nix trust.
+# Derivations are evaluated on Hylia; Fi does not evaluate personal flake inputs.
+printf '%s\n' 'Phase 1: transferring derivations and building on Fi.'
+# Redirect the copy CLI, not Nix's internally managed SSH protocol pipe.
+NIX_SSHOPTS='-J server-zant' nix copy --derivation --to ssh-ng://noahbalboa66@10.100.0.30 "$fi_agent_drv" "$fi_core_drv" </dev/null
+ssh -n -J server-zant noahbalboa66@10.100.0.30 "mkdir -p /home/noahbalboa66/build/server-fi-agent && nix build '${fi_agent_drv}^*' --out-link /home/noahbalboa66/build/server-fi-agent/result --option builders '' --print-build-logs && nix build '${fi_core_drv}^*' --out-link /home/noahbalboa66/build/server-fi-agent/core --option builders '' --print-build-logs && test -x /home/noahbalboa66/build/server-fi-agent/result/bin/switch-to-configuration && printf 'Fi system: ' && readlink -e /home/noahbalboa66/build/server-fi-agent/result && /home/noahbalboa66/build/server-fi-agent/core/bin/hc --version" </dev/null
+printf '%s\n' 'Phase 1 complete. A Fi system store path and hc 0.1.21 must appear above. No rename or switch performed.'
+# Expect hc 0.1.21. Stop if any check/build fails. Keep both result links and
+# existing NixOS system generations until the migration and rollback are verified.
+
+# Phase 2, on Fi through the administrator session. Copy only, no rename/switch.
+ssh -t -J server-zant noahbalboa66@10.100.0.30
+# If you have already copied the data, do not rerun this preparation block.
+# Keep all Hermes processes stopped until cutover; a live SQLite copy is unsafe.
+# This deliberately refuses an existing destination rather than merging state.
+# BEGIN FI AGENT COPY
+(
+  set -euo pipefail
+  umask 077
+  fail() { printf '%s\n' "$*" >&2; exit 1; }
+  [[ $(hostname -s) == server-fi && $(id -un) == noahbalboa66 && $HOME == /home/noahbalboa66 ]] || fail 'Stop: run on Fi as noahbalboa66.'
+  [[ $(id -u hermes) == 1000 && $(id -g hermes) == 100 ]] || fail 'Stop: old identity changed.'
+  [[ $(getent passwd hermes | cut -d: -f6) == /var/lib/hermes ]] || fail 'Stop: old home changed.'
+  if getent passwd agent >/dev/null; then fail 'Stop: agent already exists.'; fi
+  stage="$HOME/.local/state/fi-agent-migration"
+  [[ ! -e $stage && ! -L $stage && ! -e /home/agent && ! -L /home/agent ]] || fail 'Stop: staging or destination exists; review without deleting it.'
+  for name in .hermes workspace; do
+    sudo test -d "/var/lib/hermes/$name" && sudo test ! -L "/var/lib/hermes/$name" || fail "Stop: expected a real source directory: $name"
+  done
+  read -r -p 'Save all agent work. Type STOP-AND-COPY to end Hermes sessions and copy: ' answer < /dev/tty
+  [[ $answer == STOP-AND-COPY ]] || fail 'Cancelled.'
+  sudo loginctl disable-linger hermes
+  sudo systemctl stop home-manager-hermes.service
+  if sudo loginctl show-user hermes >/dev/null 2>&1; then sudo loginctl terminate-user hermes; fi
+  if sudo pgrep -u 1000 >/dev/null; then fail 'Stop: UID 1000 still has processes. Do not copy live state.'; fi
+  mkdir -p "$HOME/.local/state"
+  mkdir -m 0700 "$stage"
+  archive="$stage/hermes-home.tar"
+  # The shell creates this 0600 archive as Noah; tar records original UID/GID.
+  sudo tar --acls --xattrs --numeric-owner -C /var/lib/hermes -cf - .hermes workspace > "$archive"
+  [[ $(stat -c %u:%a "$archive") == "$(id -u):600" ]] || fail 'Stop: archive must be private and owned by Noah.'
+  sudo install -d -m 0700 -o 1000 -g 100 /home/agent
+  sudo tar --acls --xattrs --numeric-owner --same-owner -xpf "$archive" -C /home/agent
+  sudo tar --compare --numeric-owner -f "$archive" -C /home/agent
+  printf '%s\n' "Private Noah archive: $archive" 'Restored into /home/agent with original ownership. Login/home metadata are unchanged.' 'Keep Hermes stopped and both backups private. Report copy readiness; do not switch yet.'
+)
+
+# END FI AGENT COPY
+# Do not copy Nix profile symlinks or the shared vault. Review any other manual
+# tool state privately. Existing linked Git worktrees and absolute old-home
+# references need deliberate repair before use, not a blind text replacement.
+# If abandoning the copy phase, the old account can be used again after Noah
+# deliberately restores its linger setting with sudo loginctl enable-linger hermes.
+# The Noah-owned staging archive contains credentials. Keep it private and out of
+# Git, Obsidian and the Nix store. Retain it and the old home through verification.
+
+# Phase 3, HOLD. Run only after explicit copy readiness and native check review.
+# Stay in the Fi administrator session. No rebuild or source evaluation here:
+# activate only the exact closure already built in Phase 1.
+# BEGIN FI AGENT CUTOVER
+sudo bash <<'FI_AGENT_CUTOVER'
+set -euo pipefail
+umask 077
+fail() { printf '%s\n' "$*" >&2; exit 1; }
+[[ $(hostname -s) == server-fi ]] || fail 'Stop: expected server-fi.'
+[[ $(id -u hermes) == 1000 && $(id -g hermes) == 100 ]] || fail 'Stop: old identity changed.'
+[[ $(getent passwd hermes | cut -d: -f6) == /var/lib/hermes ]] || fail 'Stop: old home changed.'
+if getent passwd agent >/dev/null; then fail 'Stop: agent already exists.'; fi
+[[ -d /home/agent && ! -L /home/agent ]] || fail 'Stop: new home is absent or a symlink.'
+[[ $(stat -c %u:%g:%a /home/agent) == 1000:100:700 ]] || fail 'Stop: new home must be UID 1000, GID 100 and mode 0700.'
+if pgrep -u 1000 >/dev/null; then fail 'Stop: old account still has processes; stop them before cutover.'; fi
+for name in .hermes workspace; do
+  [[ -d /home/agent/$name && ! -L /home/agent/$name ]] || fail "Stop: new $name is absent or a symlink."
+  [[ $(stat -c %u:%a /home/agent/$name) == 1000:700 ]] || fail "Stop: new $name must be owned by UID 1000 with mode 0700."
+  diff -qr --no-dereference "/var/lib/hermes/$name" "/home/agent/$name" >/dev/null || fail "Stop: source/copy changed for $name."
+done
+new_system=$(readlink -e /home/noahbalboa66/build/server-fi-agent/result) || fail 'Stop: no complete system build at /home/noahbalboa66/build/server-fi-agent/result. Run Phase 1; no account change made.'
+old_system=$(readlink -e /run/current-system) || fail 'Stop: current system path could not be resolved; no account change made.'
+[[ $new_system == /nix/store/* && -x $new_system/bin/switch-to-configuration ]] || fail 'Stop: new closure is unavailable.'
+[[ $old_system == /nix/store/* && -x $old_system/bin/switch-to-configuration ]] || fail 'Stop: old closure is unavailable.'
+[[ $(readlink -f /nix/var/nix/profiles/system) == "$old_system" ]] || fail 'Stop: running system and boot profile differ; review first.'
+[[ $new_system != "$old_system" ]] || fail 'Stop: new and old closures are identical.'
+state=/var/lib/fi-agent-cutover
+[[ ! -e $state && ! -L $state ]] || fail 'Stop: previous cutover record exists; review it, do not overwrite.'
+read -r -p 'Native checks passed and copy verified? Type SWITCH-AGENT to rename and activate: ' answer < /dev/tty
+[[ $answer == SWITCH-AGENT ]] || fail 'Cancelled.'
+if pgrep -u 1000 >/dev/null; then fail 'Stop: old account became active while awaiting confirmation.'; fi
+install -d -m 0700 -o root -g root "$state"
+printf '%s\n' "$old_system" > "$state/previous-system"
+printf '%s\n' "$new_system" > "$state/new-system"
+printf '%s\n' 'Renaming the login and selecting the new system profile.'
+usermod --login agent --home /home/agent hermes
+nix-env --profile /nix/var/nix/profiles/system --set "$new_system" </dev/null
+printf '%s\n' 'Activating the built system. Keep the administrator session open.'
+"$new_system/bin/switch-to-configuration" switch </dev/null
+[[ $(id -u agent) == 1000 && $(getent passwd agent | cut -d: -f6) == /home/agent ]] || fail 'Stop: new identity did not match.'
+runuser -u agent -- test -w /home/agent/workspace || fail 'Stop: agent cannot write its workspace.'
+runuser -u agent -- test -w /srv/obsidian/4V2 || fail 'Stop: agent cannot write the shared vault.'
+runuser -u agent -- test ! -r /var/lib/obsidian-sync/.config || fail 'Stop: agent can read private sync state.'
+[[ $(readlink -f /home/agent/ObsidianVaults/4V2) == /srv/obsidian/4V2 ]] || fail 'Stop: shared vault link is incorrect.'
+systemctl is-active --quiet home-manager-agent.service || fail 'Stop: Home Manager activation is not active; keep the administrator session open and report the error.'
+printf '%s\n' 'Cutover complete. Keep this administrator connection open and verify a second agent SSH login.' 'Old home and exact rollback closure remain retained; do not remove them or run GC yet.'
+FI_AGENT_CUTOVER
+# END FI AGENT CUTOVER
+
+# On failure, stop and keep the administrator connection open. Never blindly
+# overwrite newer conversations or refreshed credentials with the old copy.
+# Save/reconcile any new state privately or plan to reauthenticate first.
+# This rollback leaves /home/agent intact for recovery, not automatic merging.
+# BEGIN FI AGENT ROLLBACK
+sudo bash <<'FI_AGENT_ROLLBACK'
+set -euo pipefail
+fail() { printf '%s\n' "$*" >&2; exit 1; }
+[[ $(hostname -s) == server-fi ]] || fail 'Stop: expected server-fi.'
+[[ $(id -u agent) == 1000 ]] || fail 'Stop: expected the migrated agent account.'
+if getent passwd hermes >/dev/null; then fail 'Stop: hermes already exists.'; fi
+[[ -d /var/lib/hermes && ! -L /var/lib/hermes ]] || fail 'Stop: old home is unavailable.'
+[[ $(stat -c %u:%g:%a /var/lib/hermes) == 1000:100:700 ]] || fail 'Stop: old home metadata changed.'
+old_system=$(< /var/lib/fi-agent-cutover/previous-system)
+[[ $old_system == /nix/store/* && -x $old_system/bin/switch-to-configuration ]] || fail 'Stop: retained old closure is unavailable.'
+read -r -p 'New state saved/reconciled? Type ROLLBACK-AGENT to stop agents and restore the old identity: ' answer < /dev/tty
+[[ $answer == ROLLBACK-AGENT ]] || fail 'Cancelled.'
+loginctl disable-linger agent
+# Activation may have failed before the new unit was installed.
+if systemctl cat home-manager-agent.service >/dev/null 2>&1; then systemctl stop home-manager-agent.service; fi
+if loginctl show-user agent >/dev/null 2>&1; then loginctl terminate-user agent; fi
+if pgrep -u 1000 >/dev/null; then fail 'Stop: UID 1000 still has processes.'; fi
+usermod --login hermes --home /var/lib/hermes agent
+nix-env --profile /nix/var/nix/profiles/system --set "$old_system" </dev/null
+"$old_system/bin/switch-to-configuration" switch </dev/null
+printf '%s\n' 'Old identity and exact previous system restored. Both homes remain; verify state before restarting Hermes.'
+FI_AGENT_ROLLBACK
+# END FI AGENT ROLLBACK
+
+# After successful cutover, open a second login from Hylia before closing admin.
+ssh -t -J server-zant agent@10.100.0.30 'printf "HOME=%s\n" "$HOME"; id; hc --version; hermes --version'
+# On Hylia as the normal Mac user, use the tested SSH alias as agent.
+# Native machine-add login failed despite working direct SSH; this bypasses
+# Herdr's separate shared-login helper. SSH config supplies the Zant jump.
+# This connection carries protocol stdin; do not add SSH -n inside --via.
+# Decline any remote core installer/updater because Fi's package is Nix-managed.
+# First registration only; the current fi profile is already connected.
+# The GUI-started core needs the terminal's working SSH-agent environment.
+# This selects the local socket for both SSH hops, without agent forwarding.
+if [ -S "${SSH_AUTH_SOCK:-}" ]; then
+  "$HOME/.local/bin/herdr-core" machine add --name fi \
+    --via "env SSH_AUTH_SOCK=$(printf '%q' "$SSH_AUTH_SOCK") ssh -T -oBatchMode=yes agent@server-fi"
+else
+  printf '%s\n' 'No SSH-agent socket is set in this terminal.'
+fi
+# In the GUI select fi, create a space at /home/agent/workspace, and run hermes
+# directly in its terminal, not the hermes-session tmux wrapper.
+# No automatic mobile setup or rich Hermes Inbox status is promised here.
+
+# ─────────────────────────────────────────────────────────────
 # pc-akkala: migrate headless Obsidian to the shared system module
 # This is a manual, one-time cutover, not an agent-run script.
 # Use the reviewed source on Akkala. Do not activate before the native Linux

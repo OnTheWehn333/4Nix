@@ -62,6 +62,12 @@ in {
   programs.git.signing.key = gpgSigningKeys.pc-hylia;
 
   programs.ssh.settings = {
+    "server-fi" = {
+      HostName = "10.100.0.30";
+      User = "noahbalboa66";
+      ProxyJump = "server-zant";
+    };
+
     "server-gohdan" = {
       HostName = "10.100.0.10";
       User = "noahbalboa66";

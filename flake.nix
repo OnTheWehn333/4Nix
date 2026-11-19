@@ -257,10 +257,54 @@
         ln -s ${cfg.system.build.metadata}/${cfg.image.filePath} "$out/metadata.tar.xz"
       '';
 
+    ## NixOS Incus VM: SSH-first AI agents
+    nixosConfigurations.server-fi = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      pkgs = linuxPkgs;
+      specialArgs = {inherit inputs;};
+      modules = [
+        vimDefaultEditorModule
+        diagnosticToolsModule
+        "${nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
+        ./hosts/server-fi/configuration.nix
+        obsidianHeadlessModule
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
+        }
+      ];
+    };
+
+    packages.x86_64-linux.server-fi-incus-image = let
+      cfg = inputs.self.nixosConfigurations.server-fi.config;
+    in
+      linuxPkgs.runCommand "server-fi-incus-image" {} ''
+        mkdir -p "$out"
+        ln -s ${cfg.system.build.qemuImage}/nixos.qcow2 "$out/disk.qcow2"
+        ln -s ${cfg.system.build.metadata}/${cfg.image.filePath} "$out/metadata.tar.xz"
+      '';
+
+    checks.x86_64-linux.server-fi-config = import ./tests/server-fi-config.nix {
+      pkgs = linuxPkgs;
+      config = inputs.self.nixosConfigurations.server-fi.config;
+    };
+
     checks.x86_64-linux.obsidian-headless-config = import ./tests/obsidian-headless-config.nix {
       pkgs = linuxPkgs;
       inherit nixpkgs;
       homeManagerModule = home-manager.nixosModules.home-manager;
+    };
+
+    checks.x86_64-linux.obsidian-hosts = import ./tests/obsidian-hosts.nix {
+      pkgs = linuxPkgs;
+      configurations = inputs.self.nixosConfigurations;
+    };
+
+    checks.x86_64-linux.server-fi-vault-permissions = import ./tests/server-fi-vault.nix {
+      pkgs = linuxPkgs;
+      inherit inputs;
     };
 
     ####################################################
