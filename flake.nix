@@ -111,6 +111,17 @@
       };
     };
 
+    diagnosticToolsModule = {
+      config,
+      lib,
+      pkgs,
+      ...
+    }: {
+      environment.systemPackages = with pkgs;
+        [btop]
+        ++ lib.optionals stdenv.isLinux [systemctl-tui];
+    };
+
     linuxPkgs = import nixpkgs {
       system = "x86_64-linux";
       config = {allowUnfree = true;};
@@ -131,6 +142,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         "${nixpkgs}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
         ./hosts/installer/configuration.nix
       ];
@@ -143,6 +155,7 @@
       pkgs = linuxPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -161,6 +174,7 @@
       pkgs = linuxPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         ./hosts/server-tenoko/configuration.nix
         ./modules/tak-server.nix
         home-manager.nixosModules.home-manager
@@ -182,6 +196,7 @@
       pkgs = linuxPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         disko.nixosModules.disko
         inputs.sops-nix.nixosModules.sops
         ./hosts/server-zant/disko.nix
@@ -202,6 +217,7 @@
       pkgs = linuxPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         "${nixpkgs}/nixos/modules/virtualisation/incus-virtual-machine.nix"
         inputs.sops-nix.nixosModules.sops
         ./hosts/server-gohdan/configuration.nix
@@ -235,6 +251,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         ./hosts/pc-akkala/configuration.nix
         ./modules/obsidian-headless.nix
         home-manager.nixosModules.home-manager
@@ -254,6 +271,7 @@
       specialArgs = {inherit inputs;};
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         ./hosts/pc-akkala/configuration.nix
         home-manager.nixosModules.home-manager
         {
@@ -275,6 +293,7 @@
       pkgs = darwinPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         nix-homebrew.darwinModules.nix-homebrew
         {
           nix-homebrew = {
@@ -301,6 +320,7 @@
       pkgs = darwinPkgs;
       modules = [
         vimDefaultEditorModule
+        diagnosticToolsModule
         nix-homebrew.darwinModules.nix-homebrew
         {
           nix-homebrew = {
