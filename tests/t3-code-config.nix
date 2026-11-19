@@ -11,6 +11,9 @@
     then null
     else builtins.fromJSON policyFile.text;
   requirements = {
+    "Fi agent Git uses gh for github.com HTTPS credentials" =
+      (config.home-manager.users.agent.programs.git.settings.credential."https://github.com".helper or [])
+      == ["" "${pkgs.gh}/bin/gh auth git-credential"];
     "T3 starts automatically as the existing private agent" =
       service
       != null
