@@ -4,7 +4,10 @@
   pkgs,
   ...
 }: {
-  imports = [./home-common.nix ../../home-modules/herdr-core.nix];
+  imports = [./home-common.nix ../../home-modules/herdr-core.nix ../../home-modules/pi.nix];
+
+  # T3 supplies the Pi binary and Pi owns its runtime settings.
+  custom.pi.skills.enable = true;
 
   programs.git.settings.user = {
     name = lib.mkForce "Agent";

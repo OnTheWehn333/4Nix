@@ -52,6 +52,20 @@
       && policy.settings.enableProviderUpdateChecks.locked
       && !policy.settings.enableAgentBrowserAccess.value
       && policy.settings.enableAgentBrowserAccess.locked;
+    "Fi agent gets Pi skills without replacing runtime settings" = let
+      home = config.home-manager.users.agent;
+      skills = home.programs.agent-skills or {};
+      selected = skills.skills.enable or [];
+    in
+      (skills.enable or false)
+      && (skills.targets.pi.enable or false)
+      && lib.all (id: builtins.elem id selected) [
+        "mattpocock/productivity/grill-me"
+        "mattpocock/productivity/grilling"
+        "mattpocock/engineering/grill-with-docs"
+      ]
+      && !(home.home.file ? ".pi/agent/settings.json")
+      && !(config.home-manager.users.noahbalboa66.programs.agent-skills.targets.pi.enable or false);
     "only the agent receives the selected backend and Pi" = let
       has = name: version: lib.any (p: (p.pname or "") == name && p.version == version) agentPackages;
     in

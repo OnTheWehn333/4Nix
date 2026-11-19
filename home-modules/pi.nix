@@ -19,6 +19,13 @@ in {
   options.custom.pi = {
     enable = lib.mkEnableOption "Pi coding agent - AI coding CLI";
 
+    skills.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = cfg.enable;
+      defaultText = lib.literalExpression "config.custom.pi.enable";
+      description = "Install the shared Pi skill catalog independently of Pi settings.";
+    };
+
     packages = lib.mkOption {
       type = lib.types.listOf lib.types.anything;
       default = [];
@@ -32,8 +39,8 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    programs.agent-skills = {
+  config = {
+    programs.agent-skills = lib.mkIf cfg.skills.enable {
       enable = true;
 
       sources.obsidian = {
@@ -95,22 +102,24 @@ in {
       targets.pi.enable = true;
     };
 
-    home.file.".pi/agent/settings.json".text = lib.generators.toJSON {} piSettings;
+    home = lib.mkIf cfg.enable {
+      file.".pi/agent/settings.json".text = lib.generators.toJSON {} piSettings;
 
-    home.file.".pi/agent/APPEND_SYSTEM.md".text = lib.mkAfter ''
-      Before your first response, read ~/.pi/agent/skills/cursor/unslop/SKILL.md.
-      Apply its writing rules to every response and authored prose throughout the session.
-      If those rules are no longer in context, read the file again before responding.
-      Preserve technical accuracy, literal code, commands, identifiers, and quotations.
-    '';
+      file.".pi/agent/APPEND_SYSTEM.md".text = lib.mkAfter ''
+        Before your first response, read ~/.pi/agent/skills/cursor/unslop/SKILL.md.
+        Apply its writing rules to every response and authored prose throughout the session.
+        If those rules are no longer in context, read the file again before responding.
+        Preserve technical accuracy, literal code, commands, identifiers, and quotations.
+      '';
 
-    home.activation.checkPiAvailable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if ! command -v pi &>/dev/null; then
-        echo "WARNING: 'pi' command not found."
-        echo "         Pi coding agent is managed via npm global packages."
-        echo "         Install with: npm install -g @mariozechner/pi-coding-agent"
-        echo "         It will be installed to: ${config.node.npmGlobalPrefix}/bin"
-      fi
-    '';
+      activation.checkPiAvailable = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if ! command -v pi &>/dev/null; then
+          echo "WARNING: 'pi' command not found."
+          echo "         Pi coding agent is managed via npm global packages."
+          echo "         Install with: npm install -g @mariozechner/pi-coding-agent"
+          echo "         It will be installed to: ${config.node.npmGlobalPrefix}/bin"
+        fi
+      '';
+    };
   };
 }

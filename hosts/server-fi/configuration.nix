@@ -120,6 +120,7 @@ in {
     vim
   ];
 
+  home-manager.extraSpecialArgs = {inherit inputs;};
   home-manager.users = {
     noahbalboa66 = import ./home-noahbalboa66.nix;
     agent = import ./home-agent.nix;
