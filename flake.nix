@@ -79,6 +79,9 @@
       flake = false;
     };
 
+    # Hermes keeps its own nixpkgs pin for the Python/toolchain versions it needs.
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.0";
+
     # agent-runner: private Pi package for isolated workflow-scoped agent runs
     agent-runner = {
       url = "git+ssh://git@github.com/OnTheWehn333/agent-runner.git";
@@ -126,6 +129,17 @@
       system = "x86_64-linux";
       config = {allowUnfree = true;};
       overlays = overlaysList;
+    };
+
+    # The fleet pin lacks this package. Reuse the existing locked package set
+    # without making the common Obsidian module depend on Hermes.
+    obsidianHeadlessModule = {pkgs, ...}: {
+      imports = [./modules/obsidian-headless.nix];
+      services.obsidian-headless.package =
+        (import inputs.hermes-agent.inputs.nixpkgs {
+          system = pkgs.stdenv.hostPlatform.system;
+          config.allowUnfree = true;
+        }).obsidian-headless;
     };
 
     darwinPkgs = import nixpkgs {
@@ -243,6 +257,12 @@
         ln -s ${cfg.system.build.metadata}/${cfg.image.filePath} "$out/metadata.tar.xz"
       '';
 
+    checks.x86_64-linux.obsidian-headless-config = import ./tests/obsidian-headless-config.nix {
+      pkgs = linuxPkgs;
+      inherit nixpkgs;
+      homeManagerModule = home-manager.nixosModules.home-manager;
+    };
+
     ####################################################
     ## WSL host
     nixosConfigurations.pc-akkala = nixpkgs.lib.nixosSystem {
@@ -253,7 +273,7 @@
         vimDefaultEditorModule
         diagnosticToolsModule
         ./hosts/pc-akkala/configuration.nix
-        ./modules/obsidian-headless.nix
+        obsidianHeadlessModule
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
@@ -273,6 +293,7 @@
         vimDefaultEditorModule
         diagnosticToolsModule
         ./hosts/pc-akkala/configuration.nix
+        obsidianHeadlessModule
         home-manager.nixosModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
@@ -282,6 +303,8 @@
         }
         ({lib, ...}: {
           home-manager.users.noahbalboa66 = lib.mkForce (import ./hosts/pc-akkala/home-bootstrap.nix);
+          # Bootstrap must not migrate vault paths or start authenticated sync.
+          services.obsidian-headless.enable = lib.mkForce false;
         })
       ];
     };

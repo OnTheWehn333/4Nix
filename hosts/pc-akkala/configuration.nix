@@ -7,6 +7,16 @@
     inputs.nixos-wsl.nixosModules.default
   ];
 
+  # Shared headless vaults. Home links preserve ~/ObsidianVaults/<vault>.
+  # Stop old sync and preserve existing directories before manual activation.
+  services.obsidian-headless = {
+    enable = true;
+    vaults = {
+      "4Vault".editors = ["noahbalboa66"];
+      "4V2".editors = ["noahbalboa66"];
+    };
+  };
+
   # WSL configuration
   wsl.enable = true;
   wsl.defaultUser = "noahbalboa66";

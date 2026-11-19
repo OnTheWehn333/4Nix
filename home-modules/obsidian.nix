@@ -14,23 +14,30 @@
   # credentials stored by obsidian-headless after `ob sync-setup`.
   vaultPasswordsNonNull = lib.filterAttrs (_: p: p != null) cfg.vaultPasswords;
 
-  passwordSecrets = lib.foldl (acc: vault: acc // {
-    "${vaultPasswordsNonNull.${vault}}" = {
-      sopsFile = cfg.sopsFile;
-    };
-  }) {} (builtins.attrNames vaultPasswordsNonNull);
+  passwordSecrets = lib.foldl (acc: vault:
+    acc
+    // {
+      "${vaultPasswordsNonNull.${vault}}" = {
+        sopsFile = cfg.sopsFile;
+      };
+    }) {} (builtins.attrNames vaultPasswordsNonNull);
 in {
   options.services.obsidian = {
     enable = lib.mkEnableOption "Obsidian vault(s)";
 
     syncMode = lib.mkOption {
       type = lib.types.enum ["gui" "headless" "none"];
-      default = if isDarwin then "gui" else "none";
+      default =
+        if isDarwin
+        then "gui"
+        else "none";
       description = ''
         How to sync vaults on this host. All vaults share this mode.
         - `gui`: use the Obsidian desktop app; no headless services are created
-        - `headless`: use obsidian-headless CLI daemon services
+        - `headless`: legacy value, rejected with migration instructions
         - `none`: vault directories only, no sync services
+        NixOS headless inventory, home links and sync now belong to the system
+        `services.obsidian-headless` module, not this Home Manager module.
       '';
     };
 
@@ -73,13 +80,15 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    warnings =
-      lib.optionals (cfg.syncMode == "gui" && isLinux) [
-        "Obsidian GUI mode requires Darwin (macOS). Use syncMode = \"headless\" on Linux."
-      ]
-      ++ lib.optionals (cfg.syncMode == "headless" && isDarwin) [
-        "Obsidian headless mode is for Linux only. On Darwin, use syncMode = \"gui\"."
-      ];
+    assertions = [
+      {
+        assertion = cfg.syncMode != "headless";
+        message = "Home Manager services.obsidian.syncMode = headless has moved to NixOS services.obsidian-headless. Declare vaults and editors there, and preserve existing directories before activating their home links.";
+      }
+    ];
+    warnings = lib.optionals (cfg.syncMode == "gui" && isLinux) [
+      "Obsidian GUI mode requires Darwin (macOS). Use NixOS services.obsidian-headless on Linux."
+    ];
 
     home.activation.createObsidianVaults = lib.hm.dag.entryAfter ["writeBoundary"] ''
       for vault in ${lib.concatMapStringsSep " " lib.escapeShellArg cfg.vaults}; do
@@ -91,19 +100,7 @@ in {
       done
     '';
 
-    home.packages = with pkgs; lib.optionals isDarwin [obsidian]
-      ++ lib.optionals (isLinux && cfg.syncMode == "headless") [nodejs_22];
-
-    home.activation.checkObsidianHeadlessAvailable = lib.hm.dag.entryAfter ["createObsidianVaults"] ''
-      if [ "${lib.boolToString (cfg.syncMode == "headless" && isLinux)}" = "true" ]; then
-        if ! command -v ob &>/dev/null && [ ! -x "${config.node.npmGlobalPrefix}/bin/ob" ]; then
-          echo "WARNING: 'ob' command not found."
-          echo "         Obsidian headless sync requires the obsidian-headless npm package."
-          echo "         Install with: npm install -g obsidian-headless"
-          echo "         It should be installed to: ${config.node.npmGlobalPrefix}/bin"
-        fi
-      fi
-    '';
+    home.packages = with pkgs; lib.optionals isDarwin [obsidian];
 
     # SOPS secret entries for encrypted vault setup.
     sops.secrets = passwordSecrets;

@@ -42,13 +42,8 @@ in {
     ../../home-modules/ssh.nix
   ];
 
-  # Obsidian: headless sync via NixOS system services.
-  services.obsidian = {
-    enable = true;
-    syncMode = "headless";
-    vaults = ["4Vault" "4V2"];
-    syncFileTypes = ["image" "audio" "video" "pdf" "unsupported"];
-  };
+  # Headless vault inventory, sync and home links are managed by the NixOS
+  # services.obsidian-headless module configured in configuration.nix.
 
   sops.defaultSopsFile = ../../secrets/pc-akkala/secrets.yaml;
   sops.gnupg.home = "${config.home.homeDirectory}/.gnupg";
