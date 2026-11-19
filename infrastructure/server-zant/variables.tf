@@ -19,7 +19,7 @@ variable "enable_server_gohdan" {
 variable "server_gohdan_image_directory" {
   description = "Directory containing disk.qcow2 and metadata.tar.xz from the server-gohdan-incus-image flake output."
   type        = string
-  default     = "../../result"
+  default     = "../../result-server-gohdan"
 }
 
 variable "server_gohdan_ipv4_address" {

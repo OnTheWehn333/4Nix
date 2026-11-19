@@ -104,6 +104,17 @@ the API key or rendered file path. Nix places a wrapper in the Incus service
 PATH that injects the root-only rendered `--config-file` when the driver invokes
 `truenas_incus_ctl`.
 
+## VM image paths and overrides
+
+Gohdan previously used the generic `result/` directory. Before the next plan,
+use the root playbook's manual preparation steps to copy those artifacts into
+`result-server-gohdan/` and compare checksums, but only if you know they are
+Gohdan's image. The copy preserves `result/` and does not overwrite existing
+files. Matching checksums establish copy integrity, not image provenance.
+For future Gohdan builds, use the `server-gohdan-incus-image` output with the
+same Hylia-evaluation and Zant-build workflow as Fi, and transfer the artifacts
+to `result-server-gohdan/`, not `result/`.
+
 ## Remote state
 
 Local state is suitable for bootstrap, but migrate it to a remote backend before

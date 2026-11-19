@@ -70,6 +70,26 @@ incus remote switch zant
 incus list
 
 # ─────────────────────────────────────────────────────────────
+# server-gohdan: prepare the dedicated image directory
+# Run from ~/Projects/4Nix on Hylia before the next OpenTofu plan.
+# Use this only if result/ contains the known Gohdan bootstrap image.
+# Otherwise rebuild server-gohdan-incus-image using Fi's build workflow below,
+# with Gohdan's output name and result-server-gohdan as the local destination.
+# Stop if a command fails or the checksum comparison reports a mismatch.
+# The copy does not overwrite existing files. Keep the original result/ intact.
+# Matching checksums verify the copy, not which VM the image belongs to.
+# ─────────────────────────────────────────────────────────────
+
+gohdan_checksums=$(mktemp "${TMPDIR:-/tmp}/server-gohdan-image.XXXXXX")
+(cd result && shasum -a 256 disk.qcow2 metadata.tar.xz) > "$gohdan_checksums"
+mkdir -p result-server-gohdan
+cp -n result/disk.qcow2 result/metadata.tar.xz result-server-gohdan/
+(cd result-server-gohdan && shasum -a 256 -c "$gohdan_checksums")
+
+# Review the complete OpenTofu plan after this path change. Reject any VM
+# replacement or deletion; preparing artifacts does not update the guest OS.
+
+# ─────────────────────────────────────────────────────────────
 # Flake management
 # ─────────────────────────────────────────────────────────────
 
