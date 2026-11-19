@@ -82,7 +82,8 @@ in {
 
       # Prefer a native clipboard tool for large local copies. The wrapper
       # falls back to tmux OSC 52 only for remote/headless sessions.
-      set -g set-clipboard external
+      # Accept OSC 52 from Neovim and nested tmux sessions.
+      set -s set-clipboard on
       set -g allow-passthrough all
       set -g @override_copy_command '${clipboardCopy}/bin/tmux-clipboard-copy'
 
