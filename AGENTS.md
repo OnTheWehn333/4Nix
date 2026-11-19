@@ -86,8 +86,6 @@ Manual-only by default; put these in `.playbook.sh` for Noah to run:
 - Secrets, key restore, 1Password, or sops commands that may expose or mutate sensitive material.
 - Global/system installs outside Nix.
 
-Noah handles git commits and pushes manually. Agents should provide a change summary instead of committing.
-
 ## Playbook policy
 
 - `.playbook.sh` is a Tome playbook, not a conventional script entrypoint.
